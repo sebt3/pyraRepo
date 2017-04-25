@@ -1,0 +1,12 @@
+{% extends "core.twig" %}
+{% block title %}{{ _('DBP repository') }}{% endblock %}
+{% block contentHeader %}
+        {{ _('Package') }}
+        <small>{{ p.name }}</small>
+{% endblock %}
+{% block scripts %}
+<script>
+d3.select('section.content').call(bs.union()
+);
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "core.twig" %}
+{% block title %}{{ _('upload') }}{% endblock %}
+{% block contentHeader %}
+        {{ _('DBP') }}
+        <small>{{ _('upload') }}</small>
+{% endblock %}
+{% block scripts %}
+<script>
+d3.select('section.content').call(bs.row()
+	.cell('col-lg-10', bs.form().enctype('multipart/form-data').url("{{ path_for('upload') }}").body(bs.box().class('box-info')
+		.title("{{ _('Upload a new DBP file') }}").body(bs.union()
+			.item(bs.formGroup('Select file').label("{{ _('Select a DBP file') }}").obj(bs.file('dbpfile')))
+		).footer(bs.button.group()
+			.left(bs.button.a().text("{{ _('Cancel') }}").icon("fa fa-arrow-left").url("{{ path_for('home') }}"))
+			.right(bs.button.form().text("{{ _('Add') }}").icon("fa fa-plus").class('btn-info'))
+))));
+</script>
+{% endblock %}

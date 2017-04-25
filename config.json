@@ -1,0 +1,11 @@
+{
+	"db" : 
+	{
+		"host"   : "localhost",
+		"dbname" : "dbprepodb",
+		"user"   : "dbprepo",
+		"pass"   : "dbprepo"
+	},
+	"displayErrorDetails" : true,
+	"addContentLengthHeader" : false
+}

@@ -1,0 +1,11 @@
+{% extends "core.twig" %}
+{% block title %}{{ _('DBP repository') }}{% endblock %}
+{% block contentHeader %}
+        {{ _('Apps') }}
+        <small>{{ _('list') }}</small>
+{% endblock %}
+{% block scripts %}
+<script>
+d3.select('section.content').call(repo.widgets.list().items(repo.widgets.items.app).data({{ json(apps) }}));
+</script>
+{% endblock %}

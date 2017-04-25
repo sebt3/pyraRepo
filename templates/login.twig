@@ -1,0 +1,64 @@
+{% extends "core.twig" %}
+{% block title %}{{ _('Login') }}{% endblock %}
+{% block body %}
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+    <a href="/"><b>DBP</b> repository</a>
+  </div>
+  <div class="login-box-body">
+{% if flash.getMessage('success') %}
+    <div class="box-body"><div class="alert alert-success alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	<i class="icon fa fa-check"></i>{{ _(flash.getMessage('success') | first ) }}
+    </div></div>
+{% endif %}
+{% if flash.getMessage('info') %}
+    <div class="box-body"><div class="alert alert-info alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	<i class="icon fa fa-info"></i>{{ _(flash.getMessage('info') | first ) }}
+    </div></div>
+{% endif %}
+{% if flash.getMessage('warning') %}
+    <div class="box-body"><div class="alert alert-warning alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	<i class="icon fa fa-warning"></i>{{ _(flash.getMessage('warning') | first ) }}
+    </div></div>
+{% endif %}
+{% if flash.getMessage('error') %}
+    <div class="box-body"><div class="alert alert-danger alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	<i class="icon fa fa-ban"></i>{{ _(flash.getMessage('error') | first ) }}
+    </div></div>
+{% endif %}
+    <p class="login-box-msg">{{ _('Sign in to start your session') }}</p>
+
+    <form action="{{ path_for('auth.login') }}" method="post">
+      <div class="form-group has-feedback">
+        <input type="login" name="username" class="form-control" placeholder="{{ _('Username') }}">
+        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+      </div>
+      <div class="form-group has-feedback">
+        <input type="password" name="password" class="form-control" placeholder="{{ _('Password') }}">
+        <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+      </div>
+      <div class="row">
+        <div class="col-xs-8">
+          <div class="checkbox iCheck"><label><input type="checkbox" name="remember"> {{ _('Remember Me') }}</label></div>
+        </div>
+        <div class="col-xs-4">
+          <button type="submit" class="btn btn-primary btn-block btn-flat">{{ _('Sign In') }}</button>
+        </div>
+      </div>
+    </form>
+
+    <!--<a href="#">I forgot my password</a><br>
+    <a href="register.html" class="text-center">Register a new membership</a>-->
+
+  </div>
+</div>
+<script src="/vendor/js/d3.v4.min.js"></script>
+<script src="/vendor/js/d3-bootstrap-withextra.min.js"></script>
+<script src="/js/repo.js"></script>
+</body>
+{% endblock %}
