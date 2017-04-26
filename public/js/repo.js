@@ -12,6 +12,7 @@
 	// private data
 	// api definition
 	repo.api = repo.api || { }
+	repo.chart = repo.chart || { }
 	repo.api.format = repo.api.format || { }
 	repo.api.format.dateAxe	= function(date) {
 		var	locale = d3.timeFormatLocale({
@@ -52,6 +53,22 @@
 			});
 		return locale.format("%x %X")(date);
 	}
+	
+	repo.panel = function() {
+	var title, body, cl = "panel-default";
+	function chart(s) { s.each(chart.init); return chart; }
+	chart.class	= function(t) {cl = t;return chart;};
+	chart.body	= function(t) {body = t;return chart;};
+	chart.init	= function() { 
+		var root= d3.select(this).append('div').attr('class', 'panel '+cl),
+		    bod = root.append('div').attr('class', 'panel-body');
+		if (typeof body != 'undefined')
+			bod.call(body)
+		return chart;
+	};
+	return chart;
+}
+
 	// widgets
 	repo.widgets = repo.widgets || { }
 	repo.widgets.core = repo.widgets.core || { }

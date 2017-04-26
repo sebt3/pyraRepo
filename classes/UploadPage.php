@@ -197,7 +197,7 @@ class UploadPage extends CorePage {
 		$newfile = $files['dbpfile'];
 		$filename = str_replace(' ', '_', $newfile->getClientFilename());
 		
-		if (empty($files['dbpfile']))
+		if (empty($newfile))
 			$this->flash->addMessage('error', 'No File uploaded');
 		else if ($newfile->getError() === UPLOAD_ERR_OK) {
 			$path = __DIR__.'/../dbps/upload/'.$filename;

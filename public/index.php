@@ -73,16 +73,19 @@ $app->group('/auth', function () use ($app) {
 
 $app->get('/',		'\HomePage:homePage')->setName('home');
 $app->group('/packages', function () use ($app) {
-	$app->get('',			'\PackagePage:packagesPage')->setName('packages.list');
-	$app->get('/{id:[0-9]+}',	'\PackagePage:packageByIdPage')->setName('packages.byId');
-	$app->get('/{str}',		'\PackagePage:packageByStrPage')->setName('packages.byStr');
-	$app->get('/{str}/edit',	'\PackagePage:packageEditPage')->setName('packages.edit');
-	$app->get('/{str}/download',	'\PackagePage:packageDownload')->setName('packages.download');
+	$app->get('',				'\PackagePage:packagesPage')->setName('packages.list');
+	$app->get('/{id:[0-9]+}',		'\PackagePage:packageByIdPage')->setName('packages.byId');
+	$app->get('/{str}',			'\PackagePage:packageByStrPage')->setName('packages.byStr');
+	$app->get('/{str}/edit',		'\PackagePage:packageEditPage')->setName('packages.edit');
+	$app->get('/{str}/download',		'\PackagePage:packageDownload')->setName('packages.download');
+	$app->get('/{str}/{id:[0-9]+}/download','\PackagePage:packageVersionDownload')->setName('packages.download.version');
 });
 $app->group('/apps', function () use ($app) {
-	$app->get('',			'\AppPage:appsPage')->setName('apps.list');
-	$app->get('/{id:[0-9]+}',	'\AppPage:appByIdPage')->setName('apps.byId');
-	$app->get('/{id:[0-9]+}/edit',	'\AppPage:appEditPage')->setName('apps.edit');
+	$app->get('',				'\AppPage:appsPage')->setName('apps.list');
+	$app->get('/{id:[0-9]+}',		'\AppPage:appByIdPage')->setName('apps.byId');
+	$app->get('/category/{id:[0-9]+}',	'\AppPage:appsByCatPage')->setName('apps.byCat');
+	$app->get('/{id:[0-9]+}/edit',		'\AppPage:appEditPage')->setName('apps.edit');
+	$app->post('/{id:[0-9]+}/upload',	'\AppPage:screenshotPost')->setName('upload.screenshot');
 });
 $app->group('/upload', function () use ($app) {
 	$app->get('',	'\UploadPage:uploadPage')->setName('upload');

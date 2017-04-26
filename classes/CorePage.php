@@ -12,6 +12,12 @@ class CorePage extends core {
 		$r = $s->fetch();
 		return $r['id'];
 	}
+	public function formatTimestamp($ts) {
+		$date = new DateTime();
+		$date->setTimestamp(round($ts/1000));
+		return $date->format('Y-m-d H:i:s');
+
+	}
 	protected function isPackageMaintainer($id) {
 		return $this->auth->isPackageMaintainer($id);
 	}

@@ -44,6 +44,19 @@ class PackagePage extends CorePage {
 		$s->execute();
 		return $s->fetch();
 	}
+	private function getPackageVersion($str, $id) {
+		$s = $this->db->prepare('select v.version, v.path, p.str_id as dbp_str_id
+  from package_versions v, dbpackages p
+ where v.dbp_id=p.id
+   and p.enabled=1
+   and v.enabled=1
+   and p.str_id=:str
+   and v.id=:id');
+		$s->bindParam(':str',	$str,		PDO::PARAM_STR);
+		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
+		$s->execute();
+		return $s->fetch();
+	}
 	private function getPackageApps($id) {
 		$_ = $this->trans;
 		$ret = [];
@@ -76,7 +89,65 @@ class PackagePage extends CorePage {
 		if (!is_array($r)) return 0;
 		return $r['id'];
 	}
-	
+
+	private function getScreenShots($id) {
+		$ret = [];
+		$s = $this->db->prepare('select s.path as url, s.timestamp as alt
+  from app_shoots s, packages_maintainers m, apps a
+ where s.app_id=a.id
+   and s.user_id=m.user_id
+   and m.dbp_id=a.dbp_id
+   and a.dbp_id=:id
+ order by s.timestamp desc
+ limit 0,10');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = $r;
+		}
+		return $ret;
+	}
+
+	private function getCommunityScreenShots($id) {
+		$ret = [];
+		$s = $this->db->prepare('select s.path as url, s.timestamp as alt
+  from app_shoots s, packages_maintainers m, apps a
+ where s.app_id=a.id
+   and s.user_id!=m.user_id
+   and m.dbp_id=a.dbp_id
+   and a.dbp_id=:id
+ order by s.timestamp desc
+ limit 0,10');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = $r;
+		}
+		return $ret;
+	}
+
+	private function getVersionHistory($id) {
+		$ret = [];
+		$s = $this->db->prepare('select v.timestamp  * 1000.0 as timestamp, v.version, u.username as uploader, p.str_id as dbp_str_id
+  from package_versions v, users u, dbpackages p
+ where v.dbp_id = :id
+   and p.id = v.dbp_id
+   and u.id = v.by_user
+   and v.enabled=1
+ order by v.timestamp desc');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = array(
+				'ts'	=> array( 'text' => $this->formatTimestamp($r['timestamp'])),
+				'ver'	=> array( 'text' => $r['version']),
+				'maint'	=> array( 'text' => $r['uploader']),
+				'downl'	=> array( 'icon' => 'fa fa-download', 'text' => 'Download', 'url' => $this->router->pathFor('packages.download.version', array('id'=> $r['id'], 'str' => $r['dbp_str_id'])))
+			);
+		}
+		return $ret;
+	}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Page Controlers
 
@@ -96,14 +167,7 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', 'No package '.$id.' found');
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
-		$this->menu->breadcrumb = array(
-			array('name' => 'packages', 'icon' => 'fa fa-archive', 'url' => $this->router->pathFor('packages.list')),
-			array('name' => $p['name'], 'url' => $this->router->pathFor('packages.byId', array('id'=> $id)))
-		);
- 		return $this->view->render($response, 'package.twig', [
-			'p'	 => $p,
-			'apps'	=> $this->getPackageApps($id)
- 		]);
+		return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 	}
 	public function packageByStrPage (Request $request, Response $response) {
 		$str = $request->getAttribute('str');
@@ -120,8 +184,11 @@ class PackagePage extends CorePage {
 			array('name' => $p['name'], 'url' => $this->router->pathFor('packages.byStr', array('str'=> $str)))
 		);
  		return $this->view->render($response, 'package.twig', [
-			'p'	=> $p,
-			'apps'	=> $this->getPackageApps($id)
+			'p'		=> $p,
+			'apps'		=> $this->getPackageApps($id),
+			'offshot'	=> $this->getScreenShots($id),
+			'comshot'	=> $this->getCommunityScreenShots($id),
+			'vers'		=> $this->getVersionHistory($id)
  		]);
 	}
 	public function packageEditPage (Request $request, Response $response) {
@@ -154,8 +221,43 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', 'No package '.$str.' found');
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
-		$this->flash->addMessage('error', 'No Download yet');
-		return $response->withRedirect($this->router->pathFor('packages.list'));
+        $fh = fopen($p['path'], 'rb');
+
+        $stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
+
+        return $response->withHeader('Content-Type', 'application/force-download')
+                        ->withHeader('Content-Type', 'application/octet-stream')
+                        ->withHeader('Content-Type', 'application/download')
+                        ->withHeader('Content-Description', 'File Transfer')
+                        ->withHeader('Content-Transfer-Encoding', 'binary')
+                        ->withHeader('Content-Disposition', 'attachment; filename="' . $p['dbp_str_id'].'-'.$p['version'].'.dbp' . '"')
+                        ->withHeader('Expires', '0')
+                        ->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
+                        ->withHeader('Pragma', 'public')
+                        ->withBody($stream);
+	}
+	public function packageVersionDownload (Request $request, Response $response) {
+		$str= $request->getAttribute('str');
+		$id = $request->getAttribute('id');
+		$v  = $this->getPackageVersion($str, $id);
+		if (!is_array($v)) {
+			$this->flash->addMessage('error', 'No version '.$id.' for package '.$str.' found');
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+        $fh = fopen($v['path'], 'rb');
+
+        $stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
+
+        return $response->withHeader('Content-Type', 'application/force-download')
+                        ->withHeader('Content-Type', 'application/octet-stream')
+                        ->withHeader('Content-Type', 'application/download')
+                        ->withHeader('Content-Description', 'File Transfer')
+                        ->withHeader('Content-Transfer-Encoding', 'binary')
+                        ->withHeader('Content-Disposition', 'attachment; filename="' . $v['dbp_str_id'].'-'.$v['version'].'.dbp' . '"')
+                        ->withHeader('Expires', '0')
+                        ->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
+                        ->withHeader('Pragma', 'public')
+                        ->withBody($stream);
 	}
 }
 

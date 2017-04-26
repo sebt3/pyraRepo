@@ -9,24 +9,31 @@
 {% endblock %}
 {% block scripts %}
 <script>
-console.log({{ json(a) }})
 d3.select('section.content').call(bs.union()
 	.item(bs.row()
-		.cell('col-lg-3', repo.widgets.items.appFull().data({{ json(a) }}))
-		.cell('col-lg-9', bs.tabs()
-			.tab('Officials screenshots', bs.carousel()
-			).tab('Community screenshots', bs.carousel()
+		.cell('col-lg-3', bs.union()
+			.item(repo.widgets.items.appFull().data({{ json(a) }}))
+			.item(bs.button.a().url("{{ path_for('packages.download', {'str': a.dbp_str_id}) }}").text('Download').icon('fa fa-download'))
+{% if menu.isMaintainer %}
+			.item(bs.button.a().url("{{ path_for('apps.edit', {'id': a.id}) }}").text('Edit').icon('fa fa-pencil').class('btn-warning'))
+{% endif %}
+		).cell('col-lg-9', bs.tabs()
+			.tab('Officials screenshots', bs.carousel().data({{ json(offshot) }})
+			).tab('Community screenshots', bs.carousel().data({{ json(comshot) }})
 {% if menu.isAuth %}
-			).tab('Upload', bs.union()
-				.item(bs.mdViewer().src("#### Upload an image"))
-				.item(bs.mdViewer().src("tab3 content"))
+			).tab('Upload', bs.form().enctype('multipart/form-data').url("{{ path_for('upload.screenshot', {'id': a.id }) }}").body(
+				repo.panel().body(bs.union()
+					.item(bs.formGroup('Select file').label("{{ _('Select a screenshot') }}").obj(bs.file('screenshot')))
+					.item(bs.button.form().text("{{ _('Add') }}").icon("fa fa-plus").class('btn-info'))
+			))
+
 {% endif %}
 	))).item(bs.p()
 	).item(bs.tabs()
 			.tab('Description', bs.mdViewer().src({{ json(a.infos) }})
-			).tab('Comments', bs.mdViewer().src('Comments come here')
-			).tab('Version history', bs.mdViewer().src('Version list come here')
-			).tab('Issues', bs.mdViewer().src('Issues come here')
+			/*).tab('Comments', bs.mdViewer().src('Comments come here')*/
+			).tab('Version history', repo.chart.table().col('Date').col('version').col('uploader').col('Download', 'text-right').body({{ json(vers) }})
+			/*).tab('Issues', bs.mdViewer().src('Issues come here')*/
 	)));
 </script>
 {% endblock %}

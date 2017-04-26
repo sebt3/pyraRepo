@@ -517,8 +517,9 @@ body {
 }
 
 .tab-content .carousel {
-	height:480px;
-	width:800px;
+}
+.tab-content .table.table-hover {
+	background: #ffffff;
 }
 .mdViewer {
 	background-color:white;

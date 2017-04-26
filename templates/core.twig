@@ -29,7 +29,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-		<a class="navbar-brand" href="#">DBP <small>repository</small></a>
+		<a class="navbar-brand" href="/">DBP <small>repository</small></a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -106,9 +106,9 @@
     <!-- Page Menu -->
             <div class="col-md-2 hidden-sm hidden-xs hidden-print">
                 <div class="list-group" id="menu">
-                    <a href="#" class="list-group-item">Category 1</a>
-                    <a href="#" class="list-group-item">Category 2</a>
-                    <a href="#" class="list-group-item">Category 3</a>
+{% for c in menu.categories %}
+                    <a href="{{ c.url }}" class="list-group-item">{{ c.name }} ({{ c.app_cnt }})</a>
+{% endfor %}
                 </div>
             </div>
 
@@ -184,6 +184,7 @@
 <script src="/vendor/js/d3.v4.min.js"></script>
 <script src="/vendor/js/d3-bootstrap-withextra.min.js"></script>
 <script src="/js/repo.js"></script>
+<script src="/js/repo.tables.js"></script>
 {% block scripts %}{% endblock %}
 </body>
 {% endblock %}
