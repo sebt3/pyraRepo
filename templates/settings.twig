@@ -1,0 +1,16 @@
+{% extends "core.twig" %}
+{% block title %}{{ _('DBP repository') }}{% endblock %}
+{% block contentHeader %}
+        {{ _('User') }}
+        <small>{{ _('settings') }}</small>
+{% endblock %}
+{% block scripts %}
+<script>
+d3.select('section.content').call(bs.union()
+	.item(bs.form().url("{{ path_for('user.password') }}").body(bs.box().title("{{ _('Change password') }}").tool(bs.button.form().text("{{ _('Submit') }}").icon("fa fa-pencil").class('btn-info')).body(bs.union()
+		.item(bs.formGroup('password').label("{{ _('New password') }}").type("password").value(""))
+		.item(bs.formGroup('again').label("{{ _('Again') }}").type("password").value(""))
+	)))
+);
+</script>
+{% endblock %}

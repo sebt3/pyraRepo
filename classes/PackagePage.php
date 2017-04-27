@@ -32,7 +32,7 @@ class PackagePage extends CorePage {
 		return $ret;
 	}
 	private function getPackage($id) {
-		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos
+		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, p.forumurl, p.upurl, p.upsrcurl, p.srcurl
   from	dbpackages p, package_versions v, archs ar, users u
  where p.last_vers=v.id
    and p.arch_id=ar.id
@@ -147,6 +147,28 @@ class PackagePage extends CorePage {
 		}
 		return $ret;
 	}
+	private function updateDesc($id, $desc) {
+		$ret = [];
+		$s = $this->db->prepare('update dbpackages set infos=:desc where id=:id');
+		if ($desc=="") $desc=null;
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':desc',	$desc,	PDO::PARAM_STR);
+		$s->execute();
+	}
+	private function updateUrls($id, $f, $u, $us, $sr) {
+		$ret = [];
+		$s = $this->db->prepare('update dbpackages set forumurl=:f,upurl=:u,upsrcurl=:us,srcurl=:s  where id=:id');
+		if ($f=="") $f=null;
+		if ($u=="") $u=null;
+		if ($us=="") $us=null;
+		if ($sr=="") $sr=null;
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':f',	$f,	PDO::PARAM_STR);
+		$s->bindParam(':u',	$u,	PDO::PARAM_STR);
+		$s->bindParam(':us',	$us,	PDO::PARAM_STR);
+		$s->bindParam(':s',	$sr,	PDO::PARAM_STR);
+		$s->execute();
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Page Controlers
@@ -259,6 +281,57 @@ class PackagePage extends CorePage {
                         ->withHeader('Pragma', 'public')
                         ->withBody($stream);
 	}
+	public function descriptionPost (Request $request, Response $response) {
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', 'No package '.$id.' found');
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', "You're not a maintainer");
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
+		}
+		$this->updateDesc($id, $request->getParam('desc'));
+		$this->flash->addMessage('info', "Description updated");
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}
+	public function urlsPost (Request $request, Response $response) {
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', 'No package '.$id.' found');
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', "You're not a maintainer");
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
+		}
+		$this->updateUrls($id, $request->getParam('forum'), $request->getParam('up'), $request->getParam('upsrc'), $request->getParam('src'));
+		$this->flash->addMessage('info', "URLs updated");
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}
+/*	public function licensePost (Request $request, Response $response) {
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', 'No package '.$id.' found');
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', "You're not a maintainer");
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
+		}
+		$this->updateDesc($id, $request->getParam('desc'));
+		$this->flash->addMessage('info', "URLs updated");
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}*/
 }
 
 ?>

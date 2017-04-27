@@ -175,6 +175,14 @@ order by timestamp desc');
 		}
 		return $ret;
 	}
+	private function updateDesc($id, $desc) {
+		$ret = [];
+		$s = $this->db->prepare('update apps set infos=:desc where id=:id');
+		if ($desc=="") $desc=null;
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':desc',	$desc,	PDO::PARAM_STR);
+		$s->execute();
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Page Controlers
@@ -232,14 +240,31 @@ order by timestamp desc');
 		}
 		$this->menu->breadcrumb = array(
 			array('name' => 'Apps', 'icon' => 'fa fa-rocket', 'url' => $this->router->pathFor('apps.list')),
-			array('name' => $a['name'], 'url' => $this->router->pathFor('apps.byId', array('id'=> $id)))
+			array('name' => $a['name'], 'url' => $this->router->pathFor('apps.byId', array('id'=> $id))),
+			array('name' => 'edit', 'icon' => 'fa fa-pencil', 'url' => $this->router->pathFor('apps.edit', array('id'=> $id)))
 		);
- 		return $this->view->render($response, 'app.twig', [
+ 		return $this->view->render($response, 'appEdit.twig', [
 			'a'	 => $a
  		]);
 	}
+	public function descriptionPost (Request $request, Response $response) {
+		$this->auth->assertAuth($request, $response);
+		$id = $request->getAttribute('id');
+		$a  = $this->getApp($id);
+		if (!is_array($a)) {
+			$this->flash->addMessage('error', 'No app '.$id.' found');
+			return $response->withRedirect($this->router->pathFor('apps.list'));
+		}
+		if(!$this->isPackageMaintainer($a['dbp_id'])) {
+			$this->flash->addMessage('error', "You're not a maintainer");
+			return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $id)));
+		}
+		$this->updateDesc($id, $request->getParam('desc'));
+		$this->flash->addMessage('info', "Description updated");
+		return $response->withRedirect($this->router->pathFor('apps.edit', array('id'=> $id)));
+	}
 	public function screenshotPost (Request $request, Response $response) {
-		$this->auth->assertAuth($request, $response);			
+		$this->auth->assertAuth($request, $response);
 		$id	= $request->getAttribute('id');
 		$a	= $this->getApp($id);
 		$date	= new DateTime();
@@ -271,7 +296,7 @@ order by timestamp desc');
 			}
 
 			$this->addScreenshot($a, $ts, $webp);
-			$this->flash->addMessage('info', 'Screenshot added '.$mimetype);
+			$this->flash->addMessage('info', 'Screenshot added');
 			return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $a['id'])));
 		} else
 			$this->flash->addMessage('error', 'Upload Failed');

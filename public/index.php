@@ -66,9 +66,11 @@ $container['notAllowedHandler'] = function ($c) {	return new \Containers\NotAllo
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Routes 
 $app->group('/auth', function () use ($app) {
-	$app->get('/login', '\Containers\AuthContainer:loginPage')->setName('auth.login');
-	$app->post('/login', '\Containers\AuthContainer:loginPost');
-	$app->get('/signout', '\Containers\AuthContainer:signout')->setName('auth.signout');
+	$app->get('/login',	'\Containers\AuthContainer:loginPage')->setName('auth.login');
+	$app->post('/login',	'\Containers\AuthContainer:loginPost');
+	$app->get('/register',	'\Containers\AuthContainer:registerPage')->setName('auth.register');
+	$app->post('/register', '\Containers\AuthContainer:registerPost');
+	$app->get('/signout',	'\Containers\AuthContainer:signout')->setName('auth.signout');
 });
 
 $app->get('/',		'\HomePage:homePage')->setName('home');
@@ -79,17 +81,31 @@ $app->group('/packages', function () use ($app) {
 	$app->get('/{str}/edit',		'\PackagePage:packageEditPage')->setName('packages.edit');
 	$app->get('/{str}/download',		'\PackagePage:packageDownload')->setName('packages.download');
 	$app->get('/{str}/{id:[0-9]+}/download','\PackagePage:packageVersionDownload')->setName('packages.download.version');
+	$app->post('/{str}/edit/description',	'\PackagePage:descriptionPost')->setName('packages.edit.desc');
+	$app->post('/{str}/edit/urls',		'\PackagePage:urlsPost')->setName('packages.edit.urls');
+	$app->post('/{str}/edit/license',	'\PackagePage:licensePost')->setName('packages.edit.license');
 });
 $app->group('/apps', function () use ($app) {
 	$app->get('',				'\AppPage:appsPage')->setName('apps.list');
 	$app->get('/{id:[0-9]+}',		'\AppPage:appByIdPage')->setName('apps.byId');
 	$app->get('/category/{id:[0-9]+}',	'\AppPage:appsByCatPage')->setName('apps.byCat');
 	$app->get('/{id:[0-9]+}/edit',		'\AppPage:appEditPage')->setName('apps.edit');
+	$app->post('/{id:[0-9]+}/edit/description','\AppPage:descriptionPost')->setName('apps.edit.desc');
 	$app->post('/{id:[0-9]+}/upload',	'\AppPage:screenshotPost')->setName('upload.screenshot');
 });
 $app->group('/upload', function () use ($app) {
 	$app->get('',	'\UploadPage:uploadPage')->setName('upload');
 	$app->post('',	'\UploadPage:uploadPost');
+})->add(function ($request, $response, $next) {
+    $this->auth->assertAuth($request, $response);
+    return $response = $next($request, $response);
+});
+$app->group('/me', function () use ($app) {
+	$app->get('',		'\UserPage:settingsPage')->setName('user.settings');
+	$app->post('/pass',	'\UserPage:passwordPost')->setName('user.password');
+})->add(function ($request, $response, $next) {
+    $this->auth->assertAuth($request, $response);
+    return $response = $next($request, $response);
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////

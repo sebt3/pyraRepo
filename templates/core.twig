@@ -65,11 +65,11 @@
 		    <ul class="dropdown-menu">
 {% if menu.isAuth %}
               <li class="user-footer">
-                <!--<div class="pull-left">
-                  <a href="#" class="btn btn-default btn-flat">Profile</a>
-                </div>-->
+                <div class="pull-left">
+                  <a href="{{ path_for('user.settings') }}" class="btn btn-info btn-flat">Profile</a>
+                </div>
                 <div class="pull-right">
-                  <a href="{{ path_for('auth.signout') }}" class="btn btn-default btn-flat">Sign out</a>
+                  <a href="{{ path_for('auth.signout') }}" class="btn btn-warning btn-flat">Sign out</a>
                 </div>
               </li>
 {% else %}
@@ -91,6 +91,7 @@
         </div>
         <div class="col-xs-6 pull-right">
                   <button type="submit" class="btn btn-primary btn-block btn-flat">{{ _('Sign In') }}</button>
+		  <a href="{{ path_for('auth.register') }}" class="btn btn-warning btn-block btn-flat">Register</a>
 		  </div></div>
               </li>
     </form>

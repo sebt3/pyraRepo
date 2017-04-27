@@ -55,7 +55,6 @@ create table keywords (
 );
 
 
-
 create table dbpackages (
 	id 		int(32) unsigned auto_increment,
 	str_id 		varchar(256) not null,
@@ -65,6 +64,10 @@ create table dbpackages (
 	enabled 	tinyint(1) default true,
 	icon		varchar(256),
 	infos	 	mediumText,
+	forumurl	varchar(256),
+	upurl		varchar(256),
+	upsrcurl	varchar(256),
+	srcurl		varchar(256),
 	constraint dbpackages_pk primary key (id),
 	constraint unique index dbpackages_u (str_id),
 	constraint dbpackages_arch_fk foreign key(arch_id) references archs(id) on delete cascade on update cascade

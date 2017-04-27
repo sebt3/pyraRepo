@@ -7,6 +7,19 @@
 {% block scripts %}
 <script>
 d3.select('section.content').call(bs.union()
+	.item(bs.form().url("{{ path_for('packages.edit.desc', {'str': p.dbp_str_id}) }}").body(bs.box()
+		.title("{{ _('Description') }}")
+		.tool(bs.button.form().text("{{ _('Submit') }}").icon("fa fa-pencil").class('btn-info'))
+		.body(bs.textarea('desc').value({{ json(p.infos) }}))
+	)).item(bs.form().url("{{ path_for('packages.edit.urls', {'str': p.dbp_str_id}) }}").body(bs.box().title("{{ _('URLs') }}").tool(bs.button.form().text("{{ _('Submit') }}").icon("fa fa-pencil").class('btn-info')).body(bs.union()
+		.item(bs.formGroup('forum').label("{{ _('Forum') }}").type("text").value("{{ p.forumurl }}"))
+		.item(bs.formGroup('up').label("{{ _('Up-stream website') }}").type("text").value("{{ p.upurl }}"))
+		.item(bs.formGroup('upsrc').label("{{ _('Up-stream sources') }}").type("text").value("{{ p.upsrcurl }}"))
+		.item(bs.formGroup('src').label("{{ _('Pyra sources') }}").type("text").value("{{ p.srcurl }}"))
+/*	))).item(bs.form().url("{{ path_for('packages.edit.license', {'str': p.dbp_str_id}) }}").body(bs.box().title("{{ _('License') }}").tool(bs.button.form().text("{{ _('Submit') }}").icon("fa fa-pencil").class('btn-info')).body(bs.union()
+		.item(bs.formGroup('ltype').label("{{ _('Type') }}").obj(bs.select('ltype').add('OpenSource',0).value(0)))
+		.item(bs.formGroup('name').label("{{ _('License name') }}").type("text").value(''))*/
+	)))
 );
 </script>
 {% endblock %}

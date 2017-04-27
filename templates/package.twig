@@ -18,6 +18,10 @@ d3.select('section.content').call(bs.union()
 			.item('version',"{{ p.version }}")
 			.item('arch',	"{{ p.arch }}")
 			.item('uploader',"{{ p.username }}")
+{% if p.forumurl %}	.item('Forum',"link", "{{ p.forumurl }}")		{% endif %}
+{% if p.upurl %}	.item('Up stream',"link", "{{ p.upurl }}")		{% endif %}
+{% if p.upsrcurl %}	.item('Up stream sources',"link", "{{ p.upsrcurl }}")	{% endif %}
+{% if p.srcurl %}	.item('Sources',"link", "{{ p.srcurl }}")		{% endif %}
 			.item('date',	repo.api.format.date({{ p.timestamp }}))
 		))
 		.item(bs.button.a().url("{{ path_for('packages.download', {'str': p.dbp_str_id}) }}").text('Download').icon('fa fa-download'))

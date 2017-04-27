@@ -246,6 +246,24 @@ class AuthContainer extends \core {
 		return $r['firstname'].' '.$r['lastname'];
 	}
 
+	public function haveUser($uname) {
+		$s = $this->db->prepare('select count(*) as cnt from users where username=:uname');
+		$s->bindParam(':uname', $uname,	PDO::PARAM_STR);
+		$s->execute();
+		if( !($r = $s->fetch()) )
+			return false;
+		return $r['cnt']>0;
+	}
+
+	public function addUser($uname, $fname, $lname, $pass) {
+		$s = $this->db->prepare('insert into users(username, firstname, lastname, passhash) values(:uname, :fname, :lname, :pass)');
+		$s->bindParam(':uname', $uname,	PDO::PARAM_STR);
+		$s->bindParam(':fname', $fname,	PDO::PARAM_STR);
+		$s->bindParam(':lname', $lname,	PDO::PARAM_STR);
+		$s->bindParam(':pass', password_hash($pass, PASSWORD_DEFAULT),	PDO::PARAM_STR);
+		$s->execute();
+	}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Permission management (this could have it's own container)
 
@@ -253,6 +271,46 @@ class AuthContainer extends \core {
 // Controlers
 	public function loginPage(Request $request, Response $response) {
  		return $this->view->render($response, 'login.twig', []);
+	}
+
+	public function registerPage(Request $request, Response $response) {
+ 		return $this->view->render($response, 'register.twig', []);
+	}
+
+	public function registerPost(Request $request, Response $response) {
+		if ($this->authenticated()) {
+			$this->flash->addMessage('error', 'Cannot register while logged in');
+			return $response->withRedirect($this->router->pathFor('home'));
+		}
+		$uname = $request->getParam('username');
+		$fname = $request->getParam('firstname');
+		$lname = $request->getParam('lastname');
+		$p1    = $request->getParam('password');
+		$p2    = $request->getParam('again');
+		if ($p1!=$p2) {
+			$this->flash->addMessage('error', 'Password mismatch');
+			return $response->withRedirect($this->router->pathFor('auth.register'));
+		}
+		if($this->haveUser($uname)) {
+			$this->flash->addMessage('error', 'Username already registered');
+			return $response->withRedirect($this->router->pathFor('auth.register'));
+		}
+		$this->addUser($uname,$fname,$lname,$p1);
+
+		if ($this->authenticate($request->getParam('username'), $request->getParam('password'))) {
+			if ($request->getParam('remember')=='on')
+				$this->remember($request->getParam('username'));
+			$this->flash->addMessage('info', _('Welcome').' '.$this->getUserName());
+			if(isset($_SERVER['HTTP_REFERER']) ) {
+				$t = explode('/', $_SERVER['HTTP_REFERER']);
+				if ($t[2] == $_SERVER['SERVER_NAME'])
+					return $response->withRedirect($_SERVER['HTTP_REFERER']);
+			}
+			return $response->withRedirect($this->router->pathFor('home'));
+		} else {
+			$this->flash->addMessage('error', 'Failed to register');
+			return $response->withRedirect($this->router->pathFor('auth.register'));
+ 		}
 	}
 
 	public function loginPost(Request $request, Response $response) {
