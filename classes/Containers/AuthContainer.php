@@ -188,6 +188,16 @@ class AuthContainer extends \core {
 		$s->execute();
 	}
 
+	public function checkPassword($pass) {
+		if (!$this->authenticated())
+			return false;
+		$s = $this->db->prepare('select passhash from users where id = :id');
+		$s->bindParam(':id', $this->user_id, PDO::PARAM_INT);
+		$s->execute();
+		if( !($r = $s->fetch()) )
+			return false;
+		return password_verify($pass, $r['passhash']);
+	}
 	public function authenticate($login, $pass) {
 		$s = $this->db->prepare('select passhash, id from users where username = :login');
 		$s->bindParam(':login', $login, PDO::PARAM_STR);

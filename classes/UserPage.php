@@ -20,9 +20,12 @@ class UserPage extends CorePage {
 	}
 	public function passwordPost(Request $request, Response $response) {
 		$this->auth->assertAuth($request, $response);
+		$cu = $request->getParam('current');
 		$p1 = $request->getParam('password');
 		$p2 = $request->getParam('again');
-		if ($p1!=$p2) {
+		if (!$this->auth->checkPassword($cu))
+			$this->flash->addMessage('error', 'Old password missmatch...');
+		else if ($p1!=$p2) {
 			$this->flash->addMessage('error', 'Password missmatch');
 		} else {
 			$this->flash->addMessage('info', 'Password changed');

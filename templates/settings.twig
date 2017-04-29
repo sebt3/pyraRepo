@@ -8,8 +8,9 @@
 <script>
 d3.select('section.content').call(bs.union()
 	.item(bs.form().url("{{ path_for('user.password') }}").body(bs.box().title("{{ _('Change password') }}").tool(bs.button.form().text("{{ _('Submit') }}").icon("fa fa-pencil").class('btn-info')).body(bs.union()
-		.item(bs.formGroup('password').label("{{ _('New password') }}").type("password").value(""))
-		.item(bs.formGroup('again').label("{{ _('Again') }}").type("password").value(""))
+		.item(bs.formGroup('current').label("{{ _('Old password') }}").type("password"))
+		.item(bs.formGroup('password').label("{{ _('New password') }}").type("password"))
+		.item(bs.formGroup('again').label("{{ _('Again') }}").type("password"))
 	)))
 );
 </script>
