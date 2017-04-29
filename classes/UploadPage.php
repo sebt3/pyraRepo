@@ -120,14 +120,15 @@ class UploadPage extends CorePage {
 		$i->bindParam(':vers', $v,   PDO::PARAM_INT);
 		$i->execute();
 
-		// TODO: add the package_names
+		// TODO: add support for ['Names'][] translations in package_names
 		return $p;
 	}
 
 	private function addApp($id, $name, $app) {
 		if (!is_array($app) || !isset($app['Type']) || $app['Type'] != 'Application' || !isset($app['Name']))
 			return false;
-		$comm = isset($app['Comments'])?$app['Comments']:null;
+		// TODO: add support for Names[] and Comments[] translations
+		$comm = isset($app['Comment'])?$app['Comment']:null;
 		$ico  = isset($app['Icon'])?'/icons/'.$name.'/'.$app['Icon']:null;
 		$i = $this->db->prepare('insert into apps(dbp_id, name, comments, icon) values (:dbp, :name, :comm, :icon) on duplicate key update comments=:comm, icon=:icon');
 		$i->bindParam(':dbp',  $id,   PDO::PARAM_INT);
@@ -143,6 +144,7 @@ class UploadPage extends CorePage {
 		if (isset($app['Categories'])) {
 			$appid = $r['id'];
 			foreach(explode(';', $app['Categories']) as $cat) {
+				if ($cat == "") continue;
 				$ci = $this->getCategoryId($cat);
 				$c = $this->db->prepare('insert into apps_categories(cat_id, app_id) values (:cat, :app) on duplicate key update app_id=:app');
 				$c->bindParam(':cat',  $ci,    PDO::PARAM_INT);
@@ -155,6 +157,33 @@ class UploadPage extends CorePage {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // DBP parsing
+	private function parseDesktop($file) {
+		$ret	 = [];
+		$current = "";
+		$lines	 = explode("\n", file_get_contents($file));
+		foreach ($lines as $n => $line) {
+			if (preg_match('/^\#/', $line) || preg_match('^;', $line))
+				continue;
+			if (preg_match("/^\[(.*)\]/", $line, $tmp)) {
+				$current = $tmp[1];
+				$ret[$current]			= [];
+				$ret[$current]['Names']		= [];
+				$ret[$current]['Comments']	= [];
+				continue;
+			}
+			if ($current=="")
+				continue; // No current section is bogus so skiping the line
+			$cols = explode('=', $line);
+			if (!preg_match('/\[/', $cols[0]))
+				$ret[$current][$cols[0]] = $cols[1];
+			else if (preg_match('/Name\[(.*)\]/', $cols[0], $tmp))
+				$ret[$current]['Names'][$tmp[1]] = $cols[1];
+			else if (preg_match('/Comment\[(.*)\]/', $cols[0], $tmp))
+				$ret[$current]['Comments'][$tmp[1]] = $cols[1];
+			else $this->logger->addError("parseDesktop: Dont know what to do with ".var_export($cols, true));
+		}
+		return $ret;
+	}
 	private function parseDBP($path) {
 		// Extracting the appended zip file
 		system('unzip -od '.$path.'.data '.$path.' >/dev/null 2>&1');
@@ -170,18 +199,15 @@ class UploadPage extends CorePage {
 			// parse the desktop files
 			$f = $file[0];
 			$k = basename($f);
-			//TODO: replace "parse_ini_file" with own's function as this failed to parse many desktop files
-			$ret[$k] = parse_ini_file($f, true);
+			$ret[$k] = $this->parseDesktop($f);
 			if(!is_array($ret[$k]) || count($ret[$k])<1)
 				$this->flash->addMessage('warning', 'Parsing '.$k.' failed');
 			if(isset($ret[$k]['Package Entry']))
 				$ret['Package Entry'] = $ret[$k]['Package Entry'];
 			$c++;
 		}
-		if($c==0) {
+		if($c==0)
 			$this->flash->addMessage('warning', 'No .desktop file found');
-		} else
-			$this->logger->addWarning($id." ".var_export($ret, true));
 		return $ret;
 	}
 
@@ -203,7 +229,7 @@ class UploadPage extends CorePage {
 			$path = __DIR__.'/../dbps/upload/'.$filename;
 			$newfile->moveTo($path);
 			$parsed = $this->parseDBP(realpath($path));
-			//$this->logger->addWarning($id." ".var_export($parsed, true));
+			$this->logger->addWarning($id." ".var_export($parsed, true));
 			if (isset($parsed['Package Entry'])) {
 				$id = $this->addPackage($parsed['Package Entry'], $filename);
 				if ($id != 0) {

@@ -32,7 +32,7 @@ class PackagePage extends CorePage {
 		return $ret;
 	}
 	private function getPackage($id) {
-		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, p.forumurl, p.upurl, p.upsrcurl, p.srcurl
+		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, p.forumurl, p.upurl, p.upsrcurl, p.srcurl, p.licenseurl, p.last_vers, p.lic_id, p.lic_detail
   from	dbpackages p, package_versions v, archs ar, users u
  where p.last_vers=v.id
    and p.arch_id=ar.id
@@ -155,21 +155,46 @@ class PackagePage extends CorePage {
 		$s->bindParam(':desc',	$desc,	PDO::PARAM_STR);
 		$s->execute();
 	}
-	private function updateUrls($id, $f, $u, $us, $sr) {
+	private function updateUrls($id, $f, $u, $us, $sr, $lr) {
 		$ret = [];
-		$s = $this->db->prepare('update dbpackages set forumurl=:f,upurl=:u,upsrcurl=:us,srcurl=:s  where id=:id');
+		$s = $this->db->prepare('update dbpackages set forumurl=:f, upurl=:u, upsrcurl=:us, srcurl=:s, licenseurl=:l  where id=:id');
 		if ($f=="") $f=null;
 		if ($u=="") $u=null;
 		if ($us=="") $us=null;
 		if ($sr=="") $sr=null;
+		if ($lr=="") $lr=null;
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->bindParam(':f',	$f,	PDO::PARAM_STR);
 		$s->bindParam(':u',	$u,	PDO::PARAM_STR);
 		$s->bindParam(':us',	$us,	PDO::PARAM_STR);
 		$s->bindParam(':s',	$sr,	PDO::PARAM_STR);
+		$s->bindParam(':l',	$lr,	PDO::PARAM_STR);
+		$s->execute();
+	}
+	private function updateLicence($id, $ltype, $name) {
+		$s = $this->db->prepare('update dbpackages set lic_id=:lic, lic_detail=:name where id=:id');
+		if ($ltype=="" || $ltype==0 ) $ltype=null;
+		if ($name=="") $name=null;
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':lic',	$ltype,	PDO::PARAM_INT);
+		$s->bindParam(':name',	$name,	PDO::PARAM_STR);
 		$s->execute();
 	}
 
+	private function addDownload($id) {
+		$date	= new DateTime();
+		$ts	= $date->getTimestamp();
+		$u	= 0;
+		if ($this->auth->authenticated())
+			$u = $this->auth->getUserId();
+		else
+			$u = $this->auth->getAnonymousId();
+		$i	= $this->db->prepare('insert into package_downloads(vers_id, timestamp, user_id) values (:id, :ts, :u) on duplicate key update timestamp=:ts');
+		$i->bindParam(':id', $id, PDO::PARAM_INT);
+		$i->bindParam(':ts', $ts, PDO::PARAM_INT);
+		$i->bindParam(':u',  $u,  PDO::PARAM_INT);
+		$i->execute();
+	}
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Page Controlers
 
@@ -232,7 +257,8 @@ class PackagePage extends CorePage {
 		);
  		return $this->view->render($response, 'packageEdit.twig', [
 			'p'	=> $p,
-			'apps'	=> $this->getPackageApps($id)
+			'apps'	=> $this->getPackageApps($id),
+			'lics'	=> $this->getLicenses()
  		]);
 	}
 	public function packageDownload (Request $request, Response $response) {
@@ -243,20 +269,21 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', 'No package '.$str.' found');
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
-        $fh = fopen($p['path'], 'rb');
+		$this->addDownload($p['last_vers']);
+		$fh = fopen($p['path'], 'rb');
 
-        $stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
+		$stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
 
-        return $response->withHeader('Content-Type', 'application/force-download')
-                        ->withHeader('Content-Type', 'application/octet-stream')
-                        ->withHeader('Content-Type', 'application/download')
-                        ->withHeader('Content-Description', 'File Transfer')
-                        ->withHeader('Content-Transfer-Encoding', 'binary')
-                        ->withHeader('Content-Disposition', 'attachment; filename="' . $p['dbp_str_id'].'-'.$p['version'].'.dbp' . '"')
-                        ->withHeader('Expires', '0')
-                        ->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
-                        ->withHeader('Pragma', 'public')
-                        ->withBody($stream);
+		return $response->withHeader('Content-Type', 'application/force-download')
+				->withHeader('Content-Type', 'application/octet-stream')
+				->withHeader('Content-Type', 'application/download')
+				->withHeader('Content-Description', 'File Transfer')
+				->withHeader('Content-Transfer-Encoding', 'binary')
+				->withHeader('Content-Disposition', 'attachment; filename="' . $p['dbp_str_id'].'-'.$p['version'].'.dbp' . '"')
+				->withHeader('Expires', '0')
+				->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
+				->withHeader('Pragma', 'public')
+				->withBody($stream);
 	}
 	public function packageVersionDownload (Request $request, Response $response) {
 		$str= $request->getAttribute('str');
@@ -266,20 +293,21 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', 'No version '.$id.' for package '.$str.' found');
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
-        $fh = fopen($v['path'], 'rb');
+		$this->addDownload($id);
+		$fh = fopen($v['path'], 'rb');
 
-        $stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
+		$stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
 
-        return $response->withHeader('Content-Type', 'application/force-download')
-                        ->withHeader('Content-Type', 'application/octet-stream')
-                        ->withHeader('Content-Type', 'application/download')
-                        ->withHeader('Content-Description', 'File Transfer')
-                        ->withHeader('Content-Transfer-Encoding', 'binary')
-                        ->withHeader('Content-Disposition', 'attachment; filename="' . $v['dbp_str_id'].'-'.$v['version'].'.dbp' . '"')
-                        ->withHeader('Expires', '0')
-                        ->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
-                        ->withHeader('Pragma', 'public')
-                        ->withBody($stream);
+		return $response->withHeader('Content-Type', 'application/force-download')
+				->withHeader('Content-Type', 'application/octet-stream')
+				->withHeader('Content-Type', 'application/download')
+				->withHeader('Content-Description', 'File Transfer')
+				->withHeader('Content-Transfer-Encoding', 'binary')
+				->withHeader('Content-Disposition', 'attachment; filename="' . $v['dbp_str_id'].'-'.$v['version'].'.dbp' . '"')
+				->withHeader('Expires', '0')
+				->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
+				->withHeader('Pragma', 'public')
+				->withBody($stream);
 	}
 	public function descriptionPost (Request $request, Response $response) {
 		$this->auth->assertAuth($request, $response);
@@ -311,11 +339,11 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', "You're not a maintainer");
 			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 		}
-		$this->updateUrls($id, $request->getParam('forum'), $request->getParam('up'), $request->getParam('upsrc'), $request->getParam('src'));
+		$this->updateUrls($id, $request->getParam('forum'), $request->getParam('up'), $request->getParam('upsrc'), $request->getParam('src'), $request->getParam('license'));
 		$this->flash->addMessage('info', "URLs updated");
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
-/*	public function licensePost (Request $request, Response $response) {
+	public function licensePost (Request $request, Response $response) {
 		$this->auth->assertAuth($request, $response);
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
@@ -328,10 +356,10 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', "You're not a maintainer");
 			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 		}
-		$this->updateDesc($id, $request->getParam('desc'));
+		$this->updateLicence($id, $request->getParam('ltype'), $request->getParam('name'));
 		$this->flash->addMessage('info', "URLs updated");
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
-	}*/
+	}
 }
 
 ?>

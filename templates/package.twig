@@ -22,6 +22,7 @@ d3.select('section.content').call(bs.union()
 {% if p.upurl %}	.item('Up stream',"link", "{{ p.upurl }}")		{% endif %}
 {% if p.upsrcurl %}	.item('Up stream sources',"link", "{{ p.upsrcurl }}")	{% endif %}
 {% if p.srcurl %}	.item('Sources',"link", "{{ p.srcurl }}")		{% endif %}
+{% if p.licenseurl or p.lic_detail %}	.item('License',{% if p.lic_detail %}"{{ p.lic_detail }}"{% else %}"link"{% endif %}{% if p.licenseurl %}, "{{ p.licenseurl }}"{% endif %})		{% endif %}
 			.item('date',	repo.api.format.date({{ p.timestamp }}))
 		))
 		.item(bs.button.a().url("{{ path_for('packages.download', {'str': p.dbp_str_id}) }}").text('Download').icon('fa fa-download'))

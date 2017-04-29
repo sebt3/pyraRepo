@@ -12,7 +12,16 @@ class CorePage extends core {
 		$r = $s->fetch();
 		return $r['id'];
 	}
-	public function formatTimestamp($ts) {
+	protected function getLicenses() {
+		$ret = [];
+		$s = $this->db->prepare('select id,name from license_types order by id asc');
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = $r;
+		}
+		return $ret;
+	}
+	protected function formatTimestamp($ts) {
 		$date = new DateTime();
 		$date->setTimestamp(round($ts/1000));
 		return $date->format('Y-m-d H:i:s');

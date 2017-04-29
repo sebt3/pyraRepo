@@ -29,6 +29,14 @@ create table langs (
 );
 insert into langs(name) values('en'),('en_US'),('en_GB'), ('fr'),('fr_FR'), ('de'),('de_DE'), ('sv'),('sv_SE');
 
+create table license_types (
+	id 		int(32) unsigned auto_increment,
+	name 		varchar(256) not null, 
+	constraint license_pk primary key (id),
+	constraint unique index license_u (name)
+);
+insert into license_types(name) values('Opensource'),('Proprietary'),('Need-Data');
+
 create table archs (
 	id 		int(32) unsigned auto_increment,
 	name 		varchar(256) not null, 
@@ -68,8 +76,12 @@ create table dbpackages (
 	upurl		varchar(256),
 	upsrcurl	varchar(256),
 	srcurl		varchar(256),
+	licenseurl	varchar(256),
+	lic_id		int(32) unsigned,
+	lic_detail	varchar(256),
 	constraint dbpackages_pk primary key (id),
 	constraint unique index dbpackages_u (str_id),
+	constraint dbpackages_lic_fk foreign key(lic_id) references license_types(id) on delete cascade on update cascade,
 	constraint dbpackages_arch_fk foreign key(arch_id) references archs(id) on delete cascade on update cascade
 );
 create index dbpackages_arch_i on dbpackages(arch_id);
@@ -113,11 +125,11 @@ create table packages_maintainers (
 create index packages_maintainers_user_i on packages_maintainers(user_id);
 
 create table package_downloads (
-	dbp_id 		int(32) unsigned not null,
+	vers_id 	int(32) unsigned not null,
 	timestamp	double(20,4) unsigned not null,
 	user_id 	int(32) unsigned not null,
-	constraint package_downloads_pk primary key (dbp_id, user_id, timestamp),
-	constraint package_downloads_dbp_fk foreign key(dbp_id) references dbpackages(id) on delete cascade on update cascade,
+	constraint package_downloads_pk primary key (vers_id, user_id, timestamp),
+	constraint package_downloads_vers_fk foreign key(vers_id) references package_versions(id) on delete cascade on update cascade,
 	constraint package_downloads_user_fk foreign key(user_id) references users(id) on delete cascade on update cascade
 );
 create index package_downloads_user_i on package_downloads(user_id, timestamp);

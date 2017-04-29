@@ -262,6 +262,19 @@ class AuthContainer extends \core {
 		$s->bindParam(':lname', $lname,	PDO::PARAM_STR);
 		$s->bindParam(':pass', password_hash($pass, PASSWORD_DEFAULT),	PDO::PARAM_STR);
 		$s->execute();
+		
+	}
+	public function getAnonymousId() {
+		$uname = 'anonymous_'.$_SERVER['REMOTE_ADDR'];
+		$i = $this->db->prepare('insert into users(username, firstname, lastname, isReal) values(:uname, "anonymous", "user", 0) on duplicate key update firstname="anonymous"');
+		$i->bindParam(':uname', $uname,	PDO::PARAM_STR);
+		$i->execute();
+		$s = $this->db->prepare('select id from users where username=:uname');
+		$s->bindParam(':uname', $uname,	PDO::PARAM_STR);
+		$s->execute();
+		if( !($r = $s->fetch()) )
+			return 0;
+		return $r['id'];
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
