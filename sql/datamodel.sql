@@ -134,6 +134,18 @@ create table package_downloads (
 );
 create index package_downloads_user_i on package_downloads(user_id, timestamp);
 
+create table package_comments (
+	dbp_id 		int(32) unsigned not null,
+	timestamp	double(20,4) unsigned not null,
+	user_id 	int(32) unsigned not null,
+	text	 	mediumText not null,
+	constraint package_comments_pk primary key (dbp_id, timestamp, user_id),
+	constraint package_comments_dbp_fk foreign key(dbp_id) references dbpackages(id) on delete cascade on update cascade,
+	constraint package_comments_user_fk foreign key(user_id) references users(id) on delete cascade on update cascade
+);
+create index package_comments_user_i on package_comments(user_id, timestamp);
+
+
 
 
 create table apps (

@@ -195,6 +195,37 @@ class PackagePage extends CorePage {
 		$i->bindParam(':u',  $u,  PDO::PARAM_INT);
 		$i->execute();
 	}
+
+	private function getComments($id) {
+		$ret = [];
+		$ret['body'] = [];
+		$s = $this->db->prepare('select u.username as author, c.timestamp * 1000.0 as timestamp, c.text
+  from package_comments c, users u 
+ where c.user_id=u.id
+   and c.dbp_id=:id 
+ order by c.timestamp asc');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret['body'][] = $r;
+		}
+		return $ret;
+	}
+
+	private function addComment($id, $comm) {
+		$ret	= [];
+		$date	= new DateTime();
+		$ts	= $date->getTimestamp();
+		$u = $this->auth->getUserId();
+		if ($comm=="") return;
+		$s = $this->db->prepare('insert into package_comments(dbp_id, timestamp, user_id, text) values(:id, :ts, :uid, :comm)');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':ts',	$ts,	PDO::PARAM_INT);
+		$s->bindParam(':uid',	$u,	PDO::PARAM_INT);
+		$s->bindParam(':comm',	$comm,	PDO::PARAM_STR);
+		$s->execute();
+	}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Page Controlers
 
@@ -235,9 +266,25 @@ class PackagePage extends CorePage {
 			'apps'		=> $this->getPackageApps($id),
 			'offshot'	=> $this->getScreenShots($id),
 			'comshot'	=> $this->getCommunityScreenShots($id),
-			'vers'		=> $this->getVersionHistory($id)
+			'vers'		=> $this->getVersionHistory($id),
+			'comments'	=> $this->getComments($id)
  		]);
 	}
+
+	public function commentPost (Request $request, Response $response) {
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', 'No package '.$str.' found');
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		$this->addComment($id, $request->getParam('comment'));
+		$this->flash->addMessage('info', "Comment added");
+		return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $str)));
+	}
+
 	public function packageEditPage (Request $request, Response $response) {
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);

@@ -1,5 +1,5 @@
 {% extends "core.twig" %}
-{% block title %}{{ _('DBP repository') }}{% endblock %}
+{% block title %}{{ _('App') }} {{ a.name }}{% endblock %}
 {% block contentHeader %}
         {{ _('App') }}
         <small>{{ a.name }}</small>
@@ -31,7 +31,7 @@ d3.select('section.content').call(bs.union()
 	))).item(bs.p()
 	).item(bs.tabs()
 			.tab('Description', bs.mdViewer().src({{ json(a.infos) }})
-			/*).tab('Comments', bs.mdViewer().src('Comments come here')*/
+			).tab('Comments', repo.widgets.commentList().postUrl("{{ path_for('apps.comment.add', {'id': a.id}) }}").mayComment({{ json(menu.isAuth) }}).data({{ json(comments) }})
 			).tab('Version history', repo.chart.table().col('Date').col('version').col('uploader').col('Download', 'text-right').body({{ json(vers) }})
 			/*).tab('Issues', bs.mdViewer().src('Issues come here')*/
 	)));

@@ -182,9 +182,10 @@ class AuthContainer extends \core {
 
 	public function setPassword($pass) {
 		if (!$this->authenticated()) return false;
+		$p = password_hash($pass, PASSWORD_DEFAULT);
 		$s = $this->db->prepare('update users set passhash = :pass where id = :id');
 		$s->bindParam(':id', $this->user_id, PDO::PARAM_INT);
-		$s->bindParam(':pass', password_hash($pass, PASSWORD_DEFAULT), PDO::PARAM_STR);
+		$s->bindParam(':pass', $p, PDO::PARAM_STR);
 		$s->execute();
 	}
 
@@ -266,11 +267,12 @@ class AuthContainer extends \core {
 	}
 
 	public function addUser($uname, $fname, $lname, $pass) {
+		$p = password_hash($pass, PASSWORD_DEFAULT);
 		$s = $this->db->prepare('insert into users(username, firstname, lastname, passhash) values(:uname, :fname, :lname, :pass)');
 		$s->bindParam(':uname', $uname,	PDO::PARAM_STR);
 		$s->bindParam(':fname', $fname,	PDO::PARAM_STR);
 		$s->bindParam(':lname', $lname,	PDO::PARAM_STR);
-		$s->bindParam(':pass', password_hash($pass, PASSWORD_DEFAULT),	PDO::PARAM_STR);
+		$s->bindParam(':pass', $p,	PDO::PARAM_STR);
 		$s->execute();
 		
 	}

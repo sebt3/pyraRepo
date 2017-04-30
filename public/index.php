@@ -84,6 +84,7 @@ $app->group('/packages', function () use ($app) {
 	$app->post('/{str}/edit/description',	'\PackagePage:descriptionPost')->setName('packages.edit.desc');
 	$app->post('/{str}/edit/urls',		'\PackagePage:urlsPost')->setName('packages.edit.urls');
 	$app->post('/{str}/edit/license',	'\PackagePage:licensePost')->setName('packages.edit.license');
+	$app->post('/{str}/comment/add',	'\PackagePage:commentPost')->setName('packages.comment.add');
 });
 $app->group('/apps', function () use ($app) {
 	$app->get('',				'\AppPage:appsPage')->setName('apps.list');
@@ -92,6 +93,7 @@ $app->group('/apps', function () use ($app) {
 	$app->get('/{id:[0-9]+}/edit',		'\AppPage:appEditPage')->setName('apps.edit');
 	$app->post('/{id:[0-9]+}/edit/description','\AppPage:descriptionPost')->setName('apps.edit.desc');
 	$app->post('/{id:[0-9]+}/upload',	'\AppPage:screenshotPost')->setName('upload.screenshot');
+	$app->post('/{id:[0-9]+}/comment/add',	'\AppPage:commentPost')->setName('apps.comment.add');
 });
 $app->group('/upload', function () use ($app) {
 	$app->get('',	'\UploadPage:uploadPage')->setName('upload');

@@ -73,7 +73,7 @@
 	repo.widgets = repo.widgets || { }
 	repo.widgets.core = repo.widgets.core || { }
 	repo.widgets.core.base = function() {
-		var data = {}, called = false, ready=false, root;
+		var data = {}, called = false, ready=false, root, src;
 		function base(s) { called=true; s.each(base.init); return base; }
 		base.dispatch	= d3.dispatch("init", "renderUpdate", "dataUpdate");
 		base.inited	= function() {return called; }
@@ -106,9 +106,12 @@
 			return base;
 		}
 		base.source	= function(_) { 
-			if (arguments.length)
+			if (arguments.length) {
+				src= _;
 				d3.json(_, function(results) { base.data(results); })
-			return base;
+				return base;
+			}
+			return src;
 		}
 
 		return base;
@@ -216,6 +219,43 @@
 
 		return item;
 	}
+	repo.widgets.items.pckFull = function() {
+		var item = repo.widgets.core.base();
+		var root;
+		item.dispatch.on("init.pkg.items.widgets", function() {
+			root = item.root().append('div').attr('class','packageItem');
+		});
+		item.dispatch.on("renderUpdate.pkg.items.widgets", function() {
+			root.html('');
+			var table = bs.descTable()
+				.item('id',	item.data().dbp_str_id)
+				.item('uploader', item.data().username)
+				.item('version', item.data().version)
+				.item('arch', item.data().arch)
+				.item('date', repo.api.format.date(item.data().timestamp));
+			if(item.data().forumurl != null)
+				table.item('Forum','link', item.data().forumurl);
+			if(item.data().upurl != null)
+				table.item('Up stream','link', item.data().upurl);
+			if(item.data().upsrcurl != null)
+				table.item('Up stream sources','link', item.data().upsrcurl);
+			if(item.data().srcurl != null)
+				table.item('Sources','link', item.data().srcurl);
+			if(item.data().licenseurl != null && item.data().lic_detail != null)
+				table.item('License',item.data().lic_detail, item.data().srcurl);
+			else if(item.data().licenseurl != null)
+				table.item('License','link', item.data().srcurl);
+			else if (item.data().lic_detail != null)
+				table.item('License',item.data().lic_detail);
+			head = root.append('div').attr('class','packageItem-head').append('a').attr('href', item.data().url);
+			head.append('span').attr('class','packageItem-icon').append('img').attr('src',item.data().icon);
+			head.append('span').attr('class','packageItem-title').html(item.data().name);
+			body = root.append('div').attr('class','packageItem-body').call(table);
+		});
+
+
+		return item;
+	}
 	repo.widgets.list = function() {
 		var lst = repo.widgets.core.base(), row = bs.row(), constructor;
 		lst.items	= function(t) {
@@ -240,6 +280,49 @@
 		});
 
 		return lst;
+	}
+	repo.widgets.commentList = function() {
+		var cmts = repo.widgets.core.base();
+		var root, addCom, url, post=false;
+		cmts.postUrl	= function(_) {
+			if (arguments.length) {
+				url = _;
+				return cmts;
+			} else	return url;
+		}
+		cmts.mayComment	= function(_) {
+			if (arguments.length) {
+				console.log(_);
+				post = _;
+				return cmts;
+			} else	return post;
+		}
+		cmts.dispatch.on("init.commentList.widgets", function() {
+			root = cmts.root().append('div').attr('class','commentList');
+			addCom = root.append('div').attr('class', 'comment-addBox');
+			if (post)
+				addCom.call(bs.form().url(url).body(bs.row()
+					.cell('col-md-11', bs.textarea('comment').lineCount(2))
+					.cell('col-md-1', bs.button.form().icon('fa fa-plus').text('Add'))
+				));
+		});
+		cmts.dispatch.on("renderUpdate.commentList.widgets", function() {
+			if(typeof cmts.data()['body'] == "undefined") return;
+			var update = root.selectAll('div.comment').data(cmts.data().body);
+			update.exit().remove();
+			update.enter().append('div').attr('class', 'comment row').each(function(d,i) {
+				var c = d3.select(this);
+				var l = c.append('div').attr('class', 'col-xs-3 col-sm-2 col-lg-1 comment-left');
+				l.append('div').attr('class','comment-author').html(d.author);
+				l.append('div').attr('class','comment-date').html( repo.api.format.date(d.timestamp));
+				c.append('div').attr('class','col-xs-9 col-sm-10 col-lg-11 comment-text').call(bs.mdViewer().src(d.text));
+				if(i%2==0)
+					c.classed('odd',true);
+			});
+			root.node().appendChild(addCom.node());
+		});
+
+		return cmts;
 	}
 
 	//repo.widgets.pckListItem = 

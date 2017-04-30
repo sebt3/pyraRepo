@@ -521,10 +521,50 @@ body {
 .tab-content .table.table-hover {
 	background: #ffffff;
 }
-.mdViewer {
+/*
+ * Texts
+ * ----------------------
+ */
+.tab-pane > .mdViewer {
 	background-color:white;
 	padding:10px 10px 5px 10px;
 }
 .textEditor textarea {
 	width:100%;
 }
+/*
+ * Comments
+ * ----------------------
+ */
+.commentList {
+	background-color:white;
+	padding:10px 10px 5px 10px;
+}
+
+
+.commentList .comment {
+	margin: 0px 0px 5px 0px;
+	background-color: #FAFAFA;
+	/*border-bottom: 3px solid #F0F0F0;*/
+}
+.commentList .comment.odd {
+	background-color: #F0F0F0;
+}
+.commentList .comment .comment-author {
+	font-weight: bolder;
+	font-size: small;
+	text-align: right;
+}
+.commentList .comment .comment-date {
+	text-align: right;
+	font-size: x-small;
+}
+.commentList .comment .comment-left {
+	border-right: 1px solid #CCC;
+}
+.commentList .comment .comment-text {
+	border-left: 1px solid #CCC;
+	margin-left: -1px;
+}
+
+

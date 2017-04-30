@@ -64,6 +64,7 @@ order by timestamp desc;');
 		}
 		return $ret;
 	}
+
 	private function getApps() {
 		$_ = $this->trans;
 		$ret = [];
@@ -175,12 +176,43 @@ order by timestamp desc');
 		}
 		return $ret;
 	}
+
 	private function updateDesc($id, $desc) {
 		$ret = [];
 		$s = $this->db->prepare('update apps set infos=:desc where id=:id');
 		if ($desc=="") $desc=null;
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->bindParam(':desc',	$desc,	PDO::PARAM_STR);
+		$s->execute();
+	}
+
+	private function getComments($id) {
+		$ret = [];
+		$ret['body'] = [];
+		$s = $this->db->prepare('select u.username as author, c.timestamp * 1000.0 as timestamp, c.text
+  from app_comments c, users u 
+ where c.user_id=u.id
+   and c.app_id=:id 
+ order by c.timestamp asc');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret['body'][] = $r;
+		}
+		return $ret;
+	}
+
+	private function addComment($id, $comm) {
+		$ret	= [];
+		$date	= new DateTime();
+		$ts	= $date->getTimestamp();
+		$u = $this->auth->getUserId();
+		if ($comm=="") return;
+		$s = $this->db->prepare('insert into app_comments(app_id, timestamp, user_id, text) values(:id, :ts, :uid, :comm)');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':ts',	$ts,	PDO::PARAM_INT);
+		$s->bindParam(':uid',	$u,	PDO::PARAM_INT);
+		$s->bindParam(':comm',	$comm,	PDO::PARAM_STR);
 		$s->execute();
 	}
 
@@ -200,6 +232,7 @@ order by timestamp desc');
 			'apps'	=> $apps
  		]);
 	}
+
 	public function appsByCatPage (Request $request, Response $response) {
 		$id = $request->getAttribute('id');
 		$apps = $this->getAppsByCat($id);
@@ -228,9 +261,24 @@ order by timestamp desc');
 			'a'		=> $a,
 			'offshot'	=> $this->getScreenShots($id),
 			'comshot'	=> $this->getCommunityScreenShots($id),
-			'vers'		=> $this->getVersionHistory($id)
+			'vers'		=> $this->getVersionHistory($id),
+			'comments'	=> $this->getComments($id)
  		]);
 	}
+
+	public function commentPost (Request $request, Response $response) {
+		$this->auth->assertAuth($request, $response);
+		$id = $request->getAttribute('id');
+		$a  = $this->getApp($id);
+		if (!is_array($a)) {
+			$this->flash->addMessage('error', 'No app '.$id.' found');
+			return $response->withRedirect($this->router->pathFor('apps.list'));
+		}
+		$this->addComment($id, $request->getParam('comment'));
+		$this->flash->addMessage('info', "Comment added");
+		return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $id)));
+	}
+
 	public function appEditPage (Request $request, Response $response) {
 		$id = $request->getAttribute('id');
 		$a  = $this->getApp($id);
@@ -247,6 +295,7 @@ order by timestamp desc');
 			'a'	 => $a
  		]);
 	}
+
 	public function descriptionPost (Request $request, Response $response) {
 		$this->auth->assertAuth($request, $response);
 		$id = $request->getAttribute('id');
@@ -263,6 +312,7 @@ order by timestamp desc');
 		$this->flash->addMessage('info', "Description updated");
 		return $response->withRedirect($this->router->pathFor('apps.edit', array('id'=> $id)));
 	}
+
 	public function screenshotPost (Request $request, Response $response) {
 		$this->auth->assertAuth($request, $response);
 		$id	= $request->getAttribute('id');
