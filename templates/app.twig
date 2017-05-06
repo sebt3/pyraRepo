@@ -18,8 +18,8 @@ d3.select('section.content').call(bs.union()
 			.item(bs.button.a().url("{{ path_for('apps.edit', {'id': a.id}) }}").text('Edit').icon('fa fa-pencil').class('btn-warning'))
 {% endif %}
 		).cell('col-lg-9', bs.tabs()
-			.tab('Officials screenshots', bs.carousel().default(base.'/pics/noscreen.png').data({{ json(offshot) }})
-			).tab('Community screenshots', bs.carousel().default(base.'/pics/noscreen.png').data({{ json(comshot) }})
+			.tab('Officials screenshots', bs.carousel().default(base+'/pics/noscreen.png').data({{ json(offshot) }})
+			).tab('Community screenshots', bs.carousel().default(base+'/pics/noscreen.png').data({{ json(comshot) }})
 {% if menu.isAuth %}
 			).tab('Upload', bs.form().enctype('multipart/form-data').url("{{ path_for('upload.screenshot', {'id': a.id }) }}").body(
 				repo.panel().body(bs.union()
