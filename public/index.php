@@ -1,27 +1,27 @@
 <?php
 /////////////////////////////////////////////////////////////////////////////////////////////
 // dependencies
-if (!isset($repo_root))
-	$repo_root = '..';
+if (!isset($GLOBALS['repo_root']))
+	$GLOBALS['repo_root'] = '..';
 
 session_start();
-require $repo_root.'/vendor/autoload.php';
-set_include_path($repo_root.DIRECTORY_SEPARATOR.'classes');
+require $GLOBALS['repo_root'].'/vendor/autoload.php';
+set_include_path($GLOBALS['repo_root'].DIRECTORY_SEPARATOR.'classes');
 spl_autoload_register();
 //spl_autoload_register(function(){});
 spl_autoload_register(function ($classname) {
 	if($classname=='ZipArchive') return;
 	$class = implode(DIRECTORY_SEPARATOR, explode('\\', $classname));
-	require $repo_root.DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.$class.'.php';
+	require $GLOBALS['repo_root'].DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.$class.'.php';
 });
-$app = new \Slim\App([ 'settings' => json_decode(file_get_contents($repo_root.'/config.json'), true) ]);
+$app = new \Slim\App([ 'settings' => json_decode(file_get_contents($GLOBALS['repo_root'].'/config.json'), true) ]);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // containers
 $container = $app->getContainer();
 $container['logger'] = function($c) {
     $logger = new \Monolog\Logger('watched');
-    $logger->pushHandler(new \Monolog\Handler\StreamHandler($repo_root.'/logs/app.log'));
+    $logger->pushHandler(new \Monolog\Handler\StreamHandler($GLOBALS['repo_root'].'/logs/app.log'));
     return $logger;
 };
 
@@ -42,7 +42,7 @@ $container['auth'] = function ($c) {	return new \Containers\AuthContainer($c); }
 $container['menu']  = function ($c) {	return new \Containers\MenuObject($c); };
 
 $container['view'] = function ($container) use ($app) {
-    $view = new \Slim\Views\Twig($repo_root.'/templates/', [
+    $view = new \Slim\Views\Twig($GLOBALS['repo_root'].'/templates/', [
         'cache' => false
         //'cache' => 'path/to/cache'
     ]);
