@@ -26,6 +26,7 @@ class PackagePage extends CorePage {
  order by timestamp desc');
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
 			$r['url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
 			$ret['body'][] = $r;
 		}
@@ -42,7 +43,9 @@ class PackagePage extends CorePage {
    and p.id=:id');
 		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
 		$s->execute();
-		return $s->fetch();
+		$r = $s->fetch();
+		$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
+		return $r;
 	}
 	private function getPackageVersion($str, $id) {
 		$s = $this->db->prepare('select v.version, v.path, p.str_id as dbp_str_id
@@ -75,6 +78,7 @@ class PackagePage extends CorePage {
 		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
 			$r['dbp_url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
 			$r['url'] = $this->router->pathFor('apps.byId', array('id'=> $r['id']));
 			$ret['body'][] = $r;
@@ -103,6 +107,7 @@ class PackagePage extends CorePage {
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['url'] = $GLOBALS['repo_base'].$r['url'];
 			$ret[] = $r;
 		}
 		return $ret;

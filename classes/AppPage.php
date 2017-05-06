@@ -31,6 +31,7 @@ order by timestamp desc');
 		$s->bindParam(':match',	$match,		PDO::PARAM_STR);
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
 			$r['dbp_url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
 			$r['url'] = $this->router->pathFor('apps.byId', array('id'=> $r['id']));
 			$ret['body'][] = $r;
@@ -59,6 +60,7 @@ order by timestamp desc;');
 		$s->execute();
 		while($r = $s->fetch()) {
 			$r['dbp_url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
+			$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
 			$r['url'] = $this->router->pathFor('apps.byId', array('id'=> $r['id']));
 			$ret['body'][] = $r;
 		}
@@ -82,6 +84,7 @@ order by timestamp desc;');
 order by timestamp desc');
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
 			$r['dbp_url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
 			$r['url'] = $this->router->pathFor('apps.byId', array('id'=> $r['id']));
 			$ret['body'][] = $r;
@@ -103,6 +106,7 @@ order by timestamp desc');
 		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
 		$s->execute();
 		$r=$s->fetch();
+		$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
 		$r['dbp_url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
 		$r['url'] = $this->router->pathFor('apps.byId', array('id'=> $r['id']));
 		return $r;
@@ -131,6 +135,7 @@ order by timestamp desc');
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['url'] = $GLOBALS['repo_base'].$r['url'];
 			$ret[] = $r;
 		}
 		return $ret;
