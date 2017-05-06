@@ -3,6 +3,8 @@
 // dependencies
 if (!isset($GLOBALS['repo_root']))
 	$GLOBALS['repo_root'] = '..';
+if (!isset($GLOBALS['repo_base']))
+	$GLOBALS['repo_base'] = '';
 
 session_start();
 require $GLOBALS['repo_root'].'/vendor/autoload.php';
@@ -50,6 +52,7 @@ $container['view'] = function ($container) use ($app) {
         $container['router'],
         $container['request']->getUri()
     ));
+    $view->getEnvironment()->addGlobal('base',  $GLOBALS['repo_base']);
     $view->getEnvironment()->addGlobal('menu',  $container->menu);
     $view->getEnvironment()->addGlobal('flash', $container->flash);
     $view->getEnvironment()->addFunction(new Twig_SimpleFunction('_', $container->trans));

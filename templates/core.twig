@@ -6,10 +6,10 @@
   {% block meta %}{% endblock %}
   <title>{{ _('DBP repository') }} - {% block title %}{{ _('home') }}{% endblock %}</title>
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-  <link rel="shortcut icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/vendor/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/vendor/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/css/repo.css">
+  <link rel="shortcut icon" href="{{ base }}/favicon.ico">
+  <link rel="stylesheet" href="{{ base }}/vendor/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ base }}/vendor/css/font-awesome.min.css">
+  <link rel="stylesheet" href="{{ base }}/css/repo.css">
   {% block stylesheet %}{% endblock %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -182,10 +182,10 @@
         </footer>
 </div>
 
-<script src="/vendor/js/d3.v4.min.js"></script>
-<script src="/vendor/js/d3-bootstrap-withextra.min.js"></script>
-<script src="/js/repo.js"></script>
-<script src="/js/repo.tables.js"></script>
+<script src="{{ base }}/vendor/js/d3.v4.min.js"></script>
+<script src="{{ base }}/vendor/js/d3-bootstrap-withextra.min.js"></script>
+<script src="{{ base }}/js/repo.js"></script>
+<script src="{{ base }}/js/repo.tables.js"></script>
 {% block scripts %}{% endblock %}
 </body>
 {% endblock %}
