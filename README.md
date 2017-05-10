@@ -6,13 +6,17 @@ All contributions are welcome. Please submit your PR ;)
 
 ### Dependencies
 Just get the dependencies using :
-``composer install``
+```composer install
+```
 ### Database
 As your mysql operator account : 
-``CREATE USER 'dbprepo'@'localhost' IDENTIFIED BY 'dbprepo';
+
+```CREATE USER 'dbprepo'@'localhost' IDENTIFIED BY 'dbprepo';
 create database dbprepodb;
 grant all privileges on dbprepodb.* to dbprepo@'%' identified by 'dbprepo';
-grant all privileges on dbprepodb.* to dbprepo@localhost identified by 'dbprepo';``
+grant all privileges on dbprepodb.* to dbprepo@localhost identified by 'dbprepo';
+```
 
 then :
-``mysql -u dbprepo -D dbprepodb -p <sql/datamodel.sql``
+```mysql -u dbprepo -D dbprepodb -p <sql/datamodel.sql
+```
