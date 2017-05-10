@@ -68,11 +68,13 @@
                 <div class="pull-left">
                   <a href="{{ path_for('user.settings') }}" class="btn btn-info btn-flat">Profile</a>
                 </div>
+  {% if not use_xf %}
                 <div class="pull-right">
                   <a href="{{ path_for('auth.signout') }}" class="btn btn-warning btn-flat">Sign out</a>
                 </div>
+  {% endif %}
               </li>
-{% else %}
+{% elseif not use_xf %}
     <form action="{{ path_for('auth.login') }}" method="post">
               <li class="user-body">
                 <p class="login-box-msg">{{ _('Sign in to start your session') }}</p>

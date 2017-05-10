@@ -93,6 +93,8 @@ class AuthContainer extends \core {
 		}
 		if ($this->authenticated())
 			$this->user_id = $_SESSION['auth_id'];
+		else if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf'])
+			$this->xf_probe();
 	}
 
 	public function getUserId() {
@@ -289,20 +291,56 @@ class AuthContainer extends \core {
 		return $r['id'];
 	}
 
+	// XenForo integration
+	private function xf_probe() {
+		if (!isset($_COOKIE['xf_user']) || !isset($_COOKIE['xf_session'])) return;
+		$xf_user = explode(",", $_COOKIE['xf_user']);
+		$xf_sess = $_COOKIE['xf_session'];
+		$xf_uid  = $xf_user[0];
+		$s = $this->db->prepare('select session_data from miriad.xf_session where session_id=:s');
+		$s->bindParam(':s', $xf_sess,	PDO::PARAM_STR);
+		$s->execute();
+		if( !($r = $s->fetch()) )
+			return;
+		$data = unserialize($r['session_data']);
+		if (!isset($data['user_id']) || $data['user_id'] != $xf_uid)
+			return; // probably should log as a security breach attempt
+
+		// XenForo session is validated, converting
+		$i = $this->db->prepare('insert into users(id,username, isReal) select user_id as id, username, 1 as isReal from miriad.xf_user x where x.user_id=:u on duplicate key update username=x.username');
+		$i->bindParam(':u', $xf_uid,	PDO::PARAM_INT);
+		$i->execute();
+
+		$_SESSION['auth_id']	= $xf_uid;
+		$this->user_id		= $xf_uid;
+	}
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Permission management (this could have it's own container)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Controlers
 	public function loginPage(Request $request, Response $response) {
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
+			$this->flash->addMessage('error', 'Not permitted');
+			return $response->withRedirect($this->router->pathFor('home'));
+		}
  		return $this->view->render($response, 'login.twig', []);
 	}
 
 	public function registerPage(Request $request, Response $response) {
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
+			$this->flash->addMessage('error', 'Not permitted');
+			return $response->withRedirect($this->router->pathFor('home'));
+		}
  		return $this->view->render($response, 'register.twig', []);
 	}
 
 	public function registerPost(Request $request, Response $response) {
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
+			$this->flash->addMessage('error', 'Not permitted');
+			return $response->withRedirect($this->router->pathFor('home'));
+		}
 		if ($this->authenticated()) {
 			$this->flash->addMessage('error', 'Cannot register while logged in');
 			return $response->withRedirect($this->router->pathFor('home'));
@@ -339,6 +377,10 @@ class AuthContainer extends \core {
 	}
 
 	public function loginPost(Request $request, Response $response) {
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
+			$this->flash->addMessage('error', 'Not permitted');
+			return $response->withRedirect($this->router->pathFor('home'));
+		}
 		if ($this->authenticate($request->getParam('username'), $request->getParam('password'))) {
 			if ($request->getParam('remember')=='on')
 				$this->remember($request->getParam('username'));
@@ -356,6 +398,10 @@ class AuthContainer extends \core {
 	}
 
 	public function signout(Request $request, Response $response) {
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
+			$this->flash->addMessage('error', 'Not permitted');
+			return $response->withRedirect($this->router->pathFor('home'));
+		}
 		$this->disconnect();
 		$this->flash->addMessage('info', 'Succesfully signed out');
  		return $response->withRedirect($this->router->pathFor('home'));

@@ -52,7 +52,9 @@ $container['view'] = function ($container) use ($app) {
         $container['router'],
         $container['request']->getUri()
     ));
+    $use_xf = isset($GLOBALS['use_xf']) && $GLOBALS['use_xf'];
     $view->getEnvironment()->addGlobal('base',  $GLOBALS['repo_base']);
+    $view->getEnvironment()->addGlobal('use_xf',$use_xf);
     $view->getEnvironment()->addGlobal('menu',  $container->menu);
     $view->getEnvironment()->addGlobal('flash', $container->flash);
     $view->getEnvironment()->addFunction(new Twig_SimpleFunction('_', $container->trans));
