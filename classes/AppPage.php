@@ -15,7 +15,7 @@ class AppPage extends CorePage {
 		$_ = $this->trans;
 		$match = "%$q%";
 		$ret = [];
-		$ret['title'] = $_('Searching apps: '.$q);
+		$ret['title'] = $_('Searching apps: ').$q;
 		$ret['body'] = [];
 		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp  * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos
   from	apps a, dbpackages p, package_versions v, archs ar, users u
@@ -319,6 +319,7 @@ order by timestamp desc');
 	}
 
 	public function screenshotPost (Request $request, Response $response) {
+		$_	= $this->trans;
 		$this->auth->assertAuth($request, $response);
 		$id	= $request->getAttribute('id');
 		$a	= $this->getApp($id);

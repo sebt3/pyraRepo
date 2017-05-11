@@ -19,6 +19,10 @@ class UserPage extends CorePage {
  		return $this->view->render($response, 'settings.twig', []);
 	}
 	public function passwordPost(Request $request, Response $response) {
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
+			$this->flash->addMessage('error', 'Not permitted');
+			return $response->withRedirect($this->router->pathFor('home'));
+		}
 		$this->auth->assertAuth($request, $response);
 		$cu = $request->getParam('current');
 		$p1 = $request->getParam('password');

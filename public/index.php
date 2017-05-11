@@ -80,7 +80,6 @@ $app->group('/auth', function () use ($app) {
 	$app->post('/register', '\Containers\AuthContainer:registerPost');
 	$app->get('/signout',	'\Containers\AuthContainer:signout')->setName('auth.signout');
 });
-
 $app->get('/',		'\HomePage:homePage')->setName('home');
 $app->group('/packages', function () use ($app) {
 	$app->get('',				'\PackagePage:packagesPage')->setName('packages.list');
