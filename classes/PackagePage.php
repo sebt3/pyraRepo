@@ -133,7 +133,7 @@ class PackagePage extends CorePage {
 
 	private function getVersionHistory($id) {
 		$ret = [];
-		$s = $this->db->prepare('select v.timestamp  * 1000.0 as timestamp, v.version, u.username as uploader, p.str_id as dbp_str_id
+		$s = $this->db->prepare('select v.id, v.timestamp  * 1000.0 as timestamp, v.version, u.username as uploader, p.str_id as dbp_str_id
   from package_versions v, users u, dbpackages p
  where v.dbp_id = :id
    and p.id = v.dbp_id
@@ -244,20 +244,22 @@ class PackagePage extends CorePage {
 	}
 
 	public function packageByIdPage (Request $request, Response $response) {
+		$_ = $this->trans;
 		$id = $request->getAttribute('id');
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$id.' found');
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 	}
 	public function packageByStrPage (Request $request, Response $response) {
+		$_ = $this->trans;
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$str.' found');
+			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		if ($this->isPackageMaintainer($id))
@@ -277,29 +279,31 @@ class PackagePage extends CorePage {
 	}
 
 	public function commentPost (Request $request, Response $response) {
+		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$str.' found');
+			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		$this->addComment($id, $request->getParam('comment'));
-		$this->flash->addMessage('info', "Comment added");
+		$this->flash->addMessage('info', $_("Comment added"));
 		return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $str)));
 	}
 
 	public function packageEditPage (Request $request, Response $response) {
+		$_ = $this->trans;
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$str.' found');
+			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		if(!$this->isPackageMaintainer($id)) {
-			$this->flash->addMessage('error', 'You cannot edit this package');
+			$this->flash->addMessage('error', $_('You cannot edit this package'));
 			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $str)));
 		}
 		$this->menu->breadcrumb = array(
@@ -314,11 +318,12 @@ class PackagePage extends CorePage {
  		]);
 	}
 	public function packageDownload (Request $request, Response $response) {
+		$_ = $this->trans;
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$str.' found');
+			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		$this->addDownload($p['last_vers']);
@@ -338,11 +343,12 @@ class PackagePage extends CorePage {
 				->withBody($stream);
 	}
 	public function packageVersionDownload (Request $request, Response $response) {
+		$_ = $this->trans;
 		$str= $request->getAttribute('str');
 		$id = $request->getAttribute('id');
 		$v  = $this->getPackageVersion($str, $id);
 		if (!is_array($v)) {
-			$this->flash->addMessage('error', 'No version '.$id.' for package '.$str.' found');
+			$this->flash->addMessage('error', $_('No version ').$id.$_(' for package ').$str.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		$this->addDownload($id);
@@ -362,54 +368,57 @@ class PackagePage extends CorePage {
 				->withBody($stream);
 	}
 	public function descriptionPost (Request $request, Response $response) {
+		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$id.' found');
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		if(!$this->isPackageMaintainer($id)) {
-			$this->flash->addMessage('error', "You're not a maintainer");
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
 			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 		}
 		$this->updateDesc($id, $request->getParam('desc'));
-		$this->flash->addMessage('info', "Description updated");
+		$this->flash->addMessage('info', $_("Description updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
 	public function urlsPost (Request $request, Response $response) {
+		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$id.' found');
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		if(!$this->isPackageMaintainer($id)) {
-			$this->flash->addMessage('error', "You're not a maintainer");
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
 			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 		}
 		$this->updateUrls($id, $request->getParam('forum'), $request->getParam('up'), $request->getParam('upsrc'), $request->getParam('src'), $request->getParam('license'));
-		$this->flash->addMessage('info', "URLs updated");
+		$this->flash->addMessage('info', $_("URLs updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
 	public function licensePost (Request $request, Response $response) {
+		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
 		$str = $request->getAttribute('str');
 		$id = $this->getPackageId($str);
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
-			$this->flash->addMessage('error', 'No package '.$id.' found');
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		if(!$this->isPackageMaintainer($id)) {
-			$this->flash->addMessage('error', "You're not a maintainer");
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
 			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 		}
 		$this->updateLicence($id, $request->getParam('ltype'), $request->getParam('name'));
-		$this->flash->addMessage('info', "URLs updated");
+		$this->flash->addMessage('info', $_("Licence updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
 }

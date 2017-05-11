@@ -321,28 +321,31 @@ class AuthContainer extends \core {
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Controlers
 	public function loginPage(Request $request, Response $response) {
+		$_ = $this->trans;
 		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
-			$this->flash->addMessage('error', 'Not permitted');
+			$this->flash->addMessage('error', $_('Not permitted'));
 			return $response->withRedirect($this->router->pathFor('home'));
 		}
  		return $this->view->render($response, 'login.twig', []);
 	}
 
 	public function registerPage(Request $request, Response $response) {
+		$_ = $this->trans;
 		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
-			$this->flash->addMessage('error', 'Not permitted');
+			$this->flash->addMessage('error', $_('Not permitted'));
 			return $response->withRedirect($this->router->pathFor('home'));
 		}
  		return $this->view->render($response, 'register.twig', []);
 	}
 
 	public function registerPost(Request $request, Response $response) {
+		$_ = $this->trans;
 		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
-			$this->flash->addMessage('error', 'Not permitted');
+			$this->flash->addMessage('error', $_('Not permitted'));
 			return $response->withRedirect($this->router->pathFor('home'));
 		}
 		if ($this->authenticated()) {
-			$this->flash->addMessage('error', 'Cannot register while logged in');
+			$this->flash->addMessage('error', $_('Cannot register while logged in'));
 			return $response->withRedirect($this->router->pathFor('home'));
 		}
 		$uname = $request->getParam('username');
@@ -351,11 +354,11 @@ class AuthContainer extends \core {
 		$p1    = $request->getParam('password');
 		$p2    = $request->getParam('again');
 		if ($p1!=$p2) {
-			$this->flash->addMessage('error', 'Password mismatch');
+			$this->flash->addMessage('error', $_('Password mismatch'));
 			return $response->withRedirect($this->router->pathFor('auth.register'));
 		}
 		if($this->haveUser($uname)) {
-			$this->flash->addMessage('error', 'Username already registered');
+			$this->flash->addMessage('error', $_('Username already registered'));
 			return $response->withRedirect($this->router->pathFor('auth.register'));
 		}
 		$this->addUser($uname,$fname,$lname,$p1);
@@ -363,7 +366,7 @@ class AuthContainer extends \core {
 		if ($this->authenticate($request->getParam('username'), $request->getParam('password'))) {
 			if ($request->getParam('remember')=='on')
 				$this->remember($request->getParam('username'));
-			$this->flash->addMessage('info', _('Welcome').' '.$this->getUserName());
+			$this->flash->addMessage('info', $_('Welcome').' '.$this->getUserName());
 			if(isset($_SERVER['HTTP_REFERER']) ) {
 				$t = explode('/', $_SERVER['HTTP_REFERER']);
 				if ($t[2] == $_SERVER['SERVER_NAME'])
@@ -371,20 +374,21 @@ class AuthContainer extends \core {
 			}
 			return $response->withRedirect($this->router->pathFor('home'));
 		} else {
-			$this->flash->addMessage('error', 'Failed to register');
+			$this->flash->addMessage('error', $_('Failed to register'));
 			return $response->withRedirect($this->router->pathFor('auth.register'));
  		}
 	}
 
 	public function loginPost(Request $request, Response $response) {
+		$_ = $this->trans;
 		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
-			$this->flash->addMessage('error', 'Not permitted');
+			$this->flash->addMessage('error', $_('Not permitted'));
 			return $response->withRedirect($this->router->pathFor('home'));
 		}
 		if ($this->authenticate($request->getParam('username'), $request->getParam('password'))) {
 			if ($request->getParam('remember')=='on')
 				$this->remember($request->getParam('username'));
-			$this->flash->addMessage('info', _('Welcome').' '.$this->getUserName());
+			$this->flash->addMessage('info', $_('Welcome').' '.$this->getUserName());
 			if(isset($_SERVER['HTTP_REFERER']) ) {
 				$t = explode('/', $_SERVER['HTTP_REFERER']);
 				if ($t[2] == $_SERVER['SERVER_NAME'])
@@ -392,18 +396,19 @@ class AuthContainer extends \core {
 			}
 			return $response->withRedirect($this->router->pathFor('home'));
 		} else {
-			$this->flash->addMessage('error', 'Failed to login.');
+			$this->flash->addMessage('error', $_('Failed to login.'));
 			return $response->withRedirect($this->router->pathFor('auth.login'));
  		}
 	}
 
 	public function signout(Request $request, Response $response) {
+		$_ = $this->trans;
 		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
-			$this->flash->addMessage('error', 'Not permitted');
+			$this->flash->addMessage('error', $_('Not permitted'));
 			return $response->withRedirect($this->router->pathFor('home'));
 		}
 		$this->disconnect();
-		$this->flash->addMessage('info', 'Succesfully signed out');
+		$this->flash->addMessage('info', $_('Succesfully signed out'));
  		return $response->withRedirect($this->router->pathFor('home'));
 	}
 }

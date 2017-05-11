@@ -83,23 +83,24 @@ class UploadPage extends CorePage {
 	}
 	
 	private function addPackage($pack, $fname) {
+		$_ = $this->trans;
 		if (!is_array($pack)) {
-			$this->flash->addMessage('error', 'Parse failed: No "Package Entry" section found');
+			$this->flash->addMessage('error', $_('Parse failed: No "Package Entry" section found'));
 			return 0;
 		} else if (!isset($pack['Id'])) {
-			$this->flash->addMessage('error', 'Parse failed: No package "Id" found');
+			$this->flash->addMessage('error', $_('Parse failed: No package "Id" found'));
 			return 0;
 		} else if (!isset($pack['Version'])) {
-			$this->flash->addMessage('error', 'Parse failed: No package "Version" found');
+			$this->flash->addMessage('error', $_('Parse failed: No package "Version" found'));
 			return 0;
 		} else if (!isset($pack['Name'])) {
-			$this->flash->addMessage('error', 'Parse failed: No package "Name" found');
+			$this->flash->addMessage('error', $_('Parse failed: No package "Name" found'));
 			return 0;
 		} else if (!isset($pack['Arch'])&&!isset($pack['arch'])) {
-			$this->flash->addMessage('error', 'Parse failed: No package "Arch" found');
+			$this->flash->addMessage('error', $_('Parse failed: No package "Arch" found'));
 			return 0;
 		} else if (strlen($pack['Id'])>31) {
-			$this->flash->addMessage('error', 'Parse failed: Package "Id" too long');
+			$this->flash->addMessage('error', $_('Parse failed: Package "Id" too long'));
 			return 0;
 		}
 
@@ -109,7 +110,7 @@ class UploadPage extends CorePage {
 		$p = $this->havePackageStr($pack['Id']);
 		if ($p!=null) {
 			if(!$this->isPackageMaintainer($p)) {
-				$this->flash->addMessage('error', 'You are not a defined maintainer');
+				$this->flash->addMessage('error', $_('You are not a defined maintainer'));
 				return 0;
 			}
 		}else 
@@ -162,7 +163,7 @@ class UploadPage extends CorePage {
 		$current = "";
 		$lines	 = explode("\n", file_get_contents($file));
 		foreach ($lines as $n => $line) {
-			if (preg_match('/^\#/', $line) || preg_match('^;', $line))
+			if (preg_match('/^\#/', $line) || preg_match('/^;/', $line))
 				continue;
 			if (preg_match("/^\[(.*)\]/", $line, $tmp)) {
 				$current = $tmp[1];
@@ -185,12 +186,13 @@ class UploadPage extends CorePage {
 		return $ret;
 	}
 	private function parseDBP($path) {
+		$_ = $this->trans;
 		// Extracting the appended zip file
 		system('unzip -od '.$path.'.data '.$path.' >/dev/null 2>&1');
 		$ret = [];
 		// Find all .desktop files
 		if(!is_dir($path.'.data')) {
-			$this->flash->addMessage('error', 'Extracting the metadata failed');
+			$this->flash->addMessage('error', $_('Extracting the metadata failed'));
 			unlink($path);
 			return $ret;
 		}
@@ -201,13 +203,13 @@ class UploadPage extends CorePage {
 			$k = basename($f);
 			$ret[$k] = $this->parseDesktop($f);
 			if(!is_array($ret[$k]) || count($ret[$k])<1)
-				$this->flash->addMessage('warning', 'Parsing '.$k.' failed');
+				$this->flash->addMessage('warning', $_('Parsing ').$k.$_(' failed'));
 			if(isset($ret[$k]['Package Entry']))
 				$ret['Package Entry'] = $ret[$k]['Package Entry'];
 			$c++;
 		}
 		if($c==0)
-			$this->flash->addMessage('warning', 'No .desktop file found');
+			$this->flash->addMessage('warning', $_('No .desktop file found'));
 		return $ret;
 	}
 
@@ -218,13 +220,15 @@ class UploadPage extends CorePage {
  		return $this->view->render($response, 'upload.twig', []);
 	}
 	public function uploadPost (Request $request, Response $response) {
+		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);			
 		$files = $request->getUploadedFiles();
+		$this->logger->addInfo("upload: ".var_export($files, true));
 		$newfile = $files['dbpfile'];
 		$filename = str_replace(' ', '_', $newfile->getClientFilename());
 		
 		if (empty($newfile))
-			$this->flash->addMessage('error', 'No File uploaded');
+			$this->flash->addMessage('error', $_('No File uploaded'));
 		else if ($newfile->getError() === UPLOAD_ERR_OK) {
 			$path = __DIR__.'/../dbps/upload/'.$filename;
 			$newfile->moveTo($path);
@@ -261,9 +265,11 @@ class UploadPage extends CorePage {
 					return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $parsed['Package Entry']['Id'])));
 				}
 			} else
-				$this->flash->addMessage('error', 'No "Package Entry" found');
-		} else
-			$this->flash->addMessage('error', 'Upload Failed');
+				$this->flash->addMessage('error', $_('No "Package Entry" found'));
+		} else {
+			$this->logger->addError("upload: ".var_export($newfile->getError(), true).' for '.var_export($newfile, true));
+			$this->flash->addMessage('error', $_('Upload Failed'));
+		}
  		return $response->withRedirect($this->router->pathFor('upload'));
 	}
 }

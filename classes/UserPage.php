@@ -19,8 +19,9 @@ class UserPage extends CorePage {
  		return $this->view->render($response, 'settings.twig', []);
 	}
 	public function passwordPost(Request $request, Response $response) {
+		$_ = $this->trans;
 		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
-			$this->flash->addMessage('error', 'Not permitted');
+			$this->flash->addMessage('error', $_('Not permitted'));
 			return $response->withRedirect($this->router->pathFor('home'));
 		}
 		$this->auth->assertAuth($request, $response);
@@ -28,11 +29,11 @@ class UserPage extends CorePage {
 		$p1 = $request->getParam('password');
 		$p2 = $request->getParam('again');
 		if (!$this->auth->checkPassword($cu))
-			$this->flash->addMessage('error', 'Old password missmatch...');
+			$this->flash->addMessage('error', $_('Old password missmatch...'));
 		else if ($p1!=$p2) {
-			$this->flash->addMessage('error', 'Password missmatch');
+			$this->flash->addMessage('error', $_('Password missmatch'));
 		} else {
-			$this->flash->addMessage('info', 'Password changed');
+			$this->flash->addMessage('info', $_('Password changed'));
 			$this->auth->setPassword($p1);
 		}
 		return $response->withRedirect($this->router->pathFor('user.settings'));

@@ -8,13 +8,17 @@ class Translate extends \core {
 	public function __construct(Container $ci) {
 		parent::__construct($ci);
 		$a = array_intersect(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']), array('fr-FR','en-US'));
-		$f = __DIR__.'/../../langs/'.$a[0].'.json';
-		if (!empty($a) && file_exists($f)) {
-			$j = file_get_contents($f);
-			$this->trans = json_decode($j, true);
-			if ($this->trans == null)
-				$this->trans = array();
-		} else	$this->trans = array();
+		if (empty($a)) {
+			$this->trans = array();
+		} else {
+			$f = __DIR__.'/../../langs/'.$a[0].'.json';
+			if (file_exists($f)) {
+				$j = file_get_contents($f);
+				$this->trans = json_decode($j, true);
+				if ($this->trans == null)
+					$this->trans = array();
+			} else	$this->trans = array();
+		}
 	}
 	
 	public function __invoke($str) {

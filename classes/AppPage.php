@@ -154,6 +154,7 @@ order by timestamp desc');
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['url'] = $GLOBALS['repo_base'].$r['url'];
 			$ret[] = $r;
 		}
 		return $ret;
@@ -250,10 +251,11 @@ order by timestamp desc');
 	}
 
 	public function appByIdPage (Request $request, Response $response) {
+		$_	= $this->trans;
 		$id = $request->getAttribute('id');
 		$a  = $this->getApp($id);
 		if (!is_array($a)) {
-			$this->flash->addMessage('error', 'No app '.$id.' found');
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('apps.list'));
 		}
 		if ($this->isPackageMaintainer($a['dbp_id']))
@@ -272,11 +274,12 @@ order by timestamp desc');
 	}
 
 	public function commentPost (Request $request, Response $response) {
+		$_	= $this->trans;
 		$this->auth->assertAuth($request, $response);
 		$id = $request->getAttribute('id');
 		$a  = $this->getApp($id);
 		if (!is_array($a)) {
-			$this->flash->addMessage('error', 'No app '.$id.' found');
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('apps.list'));
 		}
 		$this->addComment($id, $request->getParam('comment'));
@@ -285,10 +288,11 @@ order by timestamp desc');
 	}
 
 	public function appEditPage (Request $request, Response $response) {
+		$_	= $this->trans;
 		$id = $request->getAttribute('id');
 		$a  = $this->getApp($id);
 		if (!is_array($a)) {
-			$this->flash->addMessage('error', 'No app '.$id.' found');
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('apps.list'));
 		}
 		$this->menu->breadcrumb = array(
@@ -302,19 +306,20 @@ order by timestamp desc');
 	}
 
 	public function descriptionPost (Request $request, Response $response) {
+		$_	= $this->trans;
 		$this->auth->assertAuth($request, $response);
 		$id = $request->getAttribute('id');
 		$a  = $this->getApp($id);
 		if (!is_array($a)) {
-			$this->flash->addMessage('error', 'No app '.$id.' found');
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('apps.list'));
 		}
 		if(!$this->isPackageMaintainer($a['dbp_id'])) {
-			$this->flash->addMessage('error', "You're not a maintainer");
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
 			return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $id)));
 		}
 		$this->updateDesc($id, $request->getParam('desc'));
-		$this->flash->addMessage('info', "Description updated");
+		$this->flash->addMessage('info', $_("Description updated"));
 		return $response->withRedirect($this->router->pathFor('apps.edit', array('id'=> $id)));
 	}
 
@@ -330,7 +335,7 @@ order by timestamp desc');
 		$filename = "$ts-".str_replace(' ', '_', $newfile->getClientFilename());
 		
 		if (!is_array($a)) {
-			$this->flash->addMessage('error', 'No app '.$id.' found');
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('apps.list'));
 		}
 		if (empty($newfile))
@@ -347,15 +352,15 @@ order by timestamp desc');
 			$mimetypeParts = preg_split('/\s*[;,]\s*/', $mimetype);
 			$mimetype = strtolower($mimetypeParts[0]);
 			if (substr($mimetype,0,5) != "image") {
-				$this->flash->addMessage('error', $mimetype.' is not a supported type');
+				$this->flash->addMessage('error', $mimetype.$_(' is not a supported type'));
 				return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $a['id'])));
 			}
 
 			$this->addScreenshot($a, $ts, $webp);
-			$this->flash->addMessage('info', 'Screenshot added');
+			$this->flash->addMessage('info', $_('Screenshot added'));
 			return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $a['id'])));
 		} else
-			$this->flash->addMessage('error', 'Upload Failed');
+			$this->flash->addMessage('error', $_('Upload Failed'));
  		return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $a['id'])));
 	}
 }
