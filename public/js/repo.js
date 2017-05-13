@@ -64,6 +64,8 @@
 	repo.api.tr		= function(txt) {
 		if (typeof txt !== 'string')
 			return '';
+		if(typeof langArray !== 'object')
+			return txt;
 		if(typeof langArray[txt] === 'string')
 			return langArray[txt];
 		return txt;
@@ -314,7 +316,6 @@
 		}
 		cmts.mayComment	= function(_) {
 			if (arguments.length) {
-				console.log(_);
 				post = _;
 				return cmts;
 			} else	return post;

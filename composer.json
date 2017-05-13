@@ -9,7 +9,8 @@
         "twbs/bootstrap": "^3.3",
         "fortawesome/font-awesome": "^4.7",
         "driftyco/ionicons": "^2.0",
-        "sebt3/d3-bootstrap": "dev-master"
+        "sebt3/d3-bootstrap": "dev-master",
+        "components/flag-icon-css": "^2.8"
     },
     "scripts": {
 	"post-update-cmd": [

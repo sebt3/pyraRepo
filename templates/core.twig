@@ -8,6 +8,7 @@
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <link rel="shortcut icon" href="{{ base }}/favicon.ico">
   <link rel="stylesheet" href="{{ base }}/vendor/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ base }}/vendor/css/flag-icon.min.css">
   <link rel="stylesheet" href="{{ base }}/vendor/css/font-awesome.min.css">
   <link rel="stylesheet" href="{{ base }}/css/repo.css">
   {% block stylesheet %}{% endblock %}
@@ -50,6 +51,27 @@
 {% endif %}
                 </ul>
 		<ul class="nav navbar-nav navbar-right">
+{% if menu.isAuth %}
+		  <li class="dropdown">
+		    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+  {% if lang == 'fr-FR' %}
+			    <span class="flag-icon flag-icon-fr flag-icon-squared"></span>
+  {% elseif lang == 'it-IT' %}
+			    <span class="flag-icon flag-icon-it flag-icon-squared"></span>
+  {% elseif lang == 'de-DE' %}
+			    <span class="flag-icon flag-icon-de flag-icon-squared"></span>
+  {% else %}
+			    <span class="flag-icon flag-icon-gb flag-icon-squared"></span>
+  {% endif %}
+		    <span class="caret"></span></a>
+		    <ul class="dropdown-menu">
+		     <li><span class="flag-icon flag-icon-gb flag-icon-squared"></span> {{ _('English') }}</li>
+		     <li><span class="flag-icon flag-icon-fr flag-icon-squared"></span> {{ _('French') }}</li>
+		     <li><span class="flag-icon flag-icon-it flag-icon-squared"></span> {{ _('Italian') }}</li>
+		     <li><span class="flag-icon flag-icon-de flag-icon-squared"></span> {{ _('German') }}</li>
+		    </ul>
+		  </li>
+{% endif %}
 		  <li>
 		    <form class="navbar-form" role="search" action="{{ path_for('apps.list') }}">
 		      <div class="input-group">
