@@ -6,6 +6,7 @@
 {% endblock %}
 {% block scripts %}
 <script>
+repo.api.dispatch.on('ready', function() {
 d3.select('section.content').call(bs.union()
   {% if not use_xf %}
 	.item(bs.form().url("{{ path_for('user.password') }}").body(bs.box().title("{{ _('Change password') }}").tool(bs.button.form().text("{{ _('Submit') }}").icon("fa fa-pencil").class('btn-info')).body(bs.union()
@@ -15,5 +16,6 @@ d3.select('section.content').call(bs.union()
 	)))
   {% endif %}
 );
+});
 </script>
 {% endblock %}

@@ -56,6 +56,7 @@ $container['view'] = function ($container) use ($app) {
     $view->getEnvironment()->addGlobal('base',  $GLOBALS['repo_base']);
     $view->getEnvironment()->addGlobal('use_xf',$use_xf);
     $view->getEnvironment()->addGlobal('menu',  $container->menu);
+    $view->getEnvironment()->addGlobal('lang',  $container->trans->getLang());
     $view->getEnvironment()->addGlobal('flash', $container->flash);
     $view->getEnvironment()->addFunction(new Twig_SimpleFunction('_', $container->trans));
     $view->getEnvironment()->addFunction(new Twig_SimpleFunction('json', 'json_encode', array('is_safe' => array('html'))));

@@ -6,6 +6,8 @@
 {% endblock %}
 {% block scripts %}
 <script>
+repo.api.dispatch.on('ready', function() {
 d3.select('section.content').call(repo.widgets.list().items(repo.widgets.items.pkg).data({{ json(packages) }}));
+});
 </script>
 {% endblock %}

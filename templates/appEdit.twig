@@ -6,6 +6,7 @@
 {% endblock %}
 {% block scripts %}
 <script>
+repo.api.dispatch.on('ready', function() {
 d3.select('section.content').call(bs.union()
 	.item(bs.form().url("{{ path_for('apps.edit.desc', {'id': a.id }) }}").body(bs.box()
 		.title("{{ _('Description') }}")
@@ -13,5 +14,6 @@ d3.select('section.content').call(bs.union()
 		.body(bs.textarea('desc').value({{ json(a.infos) }}))
 	))
 );
+});
 </script>
 {% endblock %}

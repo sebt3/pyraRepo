@@ -10,6 +10,8 @@
 	factory(global.repo = global.repo || {}, global);
 })(this, (function(repo, global) {
 	// private data
+	var lang = 'en-US';
+	var langArray = {};
 	// api definition
 	repo.api = repo.api || { }
 	repo.chart = repo.chart || { }
@@ -53,6 +55,18 @@
 				"shortMonths": ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
 			});
 		return locale.format("%x %X")(date);
+	}
+	repo.api.dispatch	= d3.dispatch('ready');
+	repo.api.lang		= function(l, f) {
+		lang=l;
+		d3.json(f, function(results) { langArray = results; repo.api.dispatch.call('ready');})
+	}
+	repo.api.tr		= function(txt) {
+		if (typeof txt !== 'string')
+			return '';
+		if(typeof langArray[txt] === 'string')
+			return langArray[txt];
+		return txt;
 	}
 	
 	repo.panel = function() {
@@ -170,10 +184,10 @@
 			head.append('span').attr('class','packageItem-icon').append('img').attr('src',item.data().icon);
 			head.append('span').attr('class','packageItem-title').html(item.data().name);
 			body = root.append('div').attr('class','packageItem-body').call(bs.descTable()
-				.item('uploader', item.data().username)
-				.item('version', item.data().version)
-				.item('arch', item.data().arch)
-				.item('size', repo.api.format.fileSize(item.data().filesize))
+				.item(repo.api.tr('uploader'), item.data().username)
+				.item(repo.api.tr('version'), item.data().version)
+				.item(repo.api.tr('arch'), item.data().arch)
+				.item(repo.api.tr('size'), repo.api.format.fileSize(item.data().filesize))
 			);
 		});
 
@@ -191,8 +205,8 @@
 			head.append('span').attr('class','appItem-icon').append('img').attr('src',item.data().icon);
 			head.append('span').attr('class','appItem-title').html(item.data().name);
 			body = root.append('div').attr('class','appItem-body').call(bs.descTable()
-				.item('description', item.data().comments)
-				.item('package', item.data().dbp_name, item.data().dbp_url)
+				.item(repo.api.tr('description'), item.data().comments)
+				.item(repo.api.tr('package'), item.data().dbp_name, item.data().dbp_url)
 			);
 		});
 
@@ -210,12 +224,12 @@
 			head.append('span').attr('class','appItem-icon').append('img').attr('src',item.data().icon);
 			head.append('span').attr('class','appItem-title').html(item.data().name);
 			body = root.append('div').attr('class','appItem-body').call(bs.descTable()
-				.item('description', item.data().comments)
-				.item('package', item.data().dbp_name, item.data().dbp_url)
-				.item('version', item.data().version)
-				.item('arch', item.data().arch)
-				.item('uploader', item.data().username)
-				.item('date', repo.api.format.date(item.data().timestamp))
+				.item(repo.api.tr('description'), item.data().comments)
+				.item(repo.api.tr('package'), item.data().dbp_name, item.data().dbp_url)
+				.item(repo.api.tr('version'), item.data().version)
+				.item(repo.api.tr('arch'), item.data().arch)
+				.item(repo.api.tr('uploader'), item.data().username)
+				.item(repo.api.tr('date'), repo.api.format.date(item.data().timestamp))
 			);
 		});
 
@@ -230,26 +244,31 @@
 		item.dispatch.on("renderUpdate.pkg.items.widgets", function() {
 			root.html('');
 			var table = bs.descTable()
-				.item('id',	item.data().dbp_str_id)
-				.item('uploader', item.data().username)
-				.item('version', item.data().version)
-				.item('arch', item.data().arch)
-				.item('size', repo.api.format.fileSize(item.data().filesize))
-				.item('date', repo.api.format.date(item.data().timestamp));
+				.item(repo.api.tr('id'), item.data().dbp_str_id)
+				.item(repo.api.tr('uploader'), item.data().username)
+				.item(repo.api.tr('version'), item.data().version)
+				.item(repo.api.tr('arch'), item.data().arch)
+				.item(repo.api.tr('size'), repo.api.format.fileSize(item.data().filesize))
+				.item(repo.api.tr('date'), repo.api.format.date(item.data().timestamp));
 			if(item.data().forumurl != null)
-				table.item('Forum','link', item.data().forumurl);
+				table.item(repo.api.tr('Forum'),
+					   repo.api.tr('link'), item.data().forumurl);
 			if(item.data().upurl != null)
-				table.item('Up stream','link', item.data().upurl);
+				table.item(repo.api.tr('Up stream'),
+					   repo.api.tr('link'), item.data().upurl);
 			if(item.data().upsrcurl != null)
-				table.item('Up stream sources','link', item.data().upsrcurl);
+				table.item(repo.api.tr('Up stream sources'),
+					   repo.api.tr('link'), item.data().upsrcurl);
 			if(item.data().srcurl != null)
-				table.item('Sources','link', item.data().srcurl);
+				table.item(repo.api.tr('Sources'),
+					   repo.api.tr('link'), item.data().srcurl);
 			if(item.data().licenseurl != null && item.data().lic_detail != null)
-				table.item('License',item.data().lic_detail, item.data().srcurl);
+				table.item(repo.api.tr('License'),item.data().lic_detail, item.data().srcurl);
 			else if(item.data().licenseurl != null)
-				table.item('License','link', item.data().srcurl);
+				table.item(repo.api.tr('License'),
+					   repo.api.tr('link'), item.data().srcurl);
 			else if (item.data().lic_detail != null)
-				table.item('License',item.data().lic_detail);
+				table.item(repo.api.tr('License'),item.data().lic_detail);
 			head = root.append('div').attr('class','packageItem-head').append('a').attr('href', item.data().url);
 			head.append('span').attr('class','packageItem-icon').append('img').attr('src',item.data().icon);
 			head.append('span').attr('class','packageItem-title').html(item.data().name);

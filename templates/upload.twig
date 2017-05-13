@@ -6,6 +6,7 @@
 {% endblock %}
 {% block scripts %}
 <script>
+repo.api.dispatch.on('ready', function() {
 d3.select('section.content').call(bs.row()
 	.cell('col-lg-10', bs.form().enctype('multipart/form-data').url("{{ path_for('upload') }}").body(bs.box().class('box-info')
 		.title("{{ _('Upload a new DBP file') }}").body(bs.union()
@@ -14,5 +15,6 @@ d3.select('section.content').call(bs.row()
 			.left(bs.button.a().text("{{ _('Cancel') }}").icon("fa fa-arrow-left").url("{{ path_for('home') }}"))
 			.right(bs.button.form().text("{{ _('Add') }}").icon("fa fa-plus").class('btn-info'))
 ))));
+});
 </script>
 {% endblock %}

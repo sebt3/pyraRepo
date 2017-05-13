@@ -2,7 +2,7 @@
 
 for lang in fr-FR it-IT de-DE;do
 
-	file=langs/${lang}.json
+	file=public/langs/${lang}.json
 	back="${file}.back"
 	[ ! -e $file ] && >$file
 	cp $file $back
@@ -16,9 +16,10 @@ for lang in fr-FR it-IT de-DE;do
 		fi
 		{
 		grep -r '_(' templates |sed 's/.*{{ _('"'"'//;s/'"'"') }}.*//'|grep -v '}}'
-		grep -r '$_(' classes|sed 's/.*\$\_(//;s/).*//;s/^'"'"'//;s/'"'"'$//;s/^"//;s/"$//'
+		grep -r '$_(' classes|sed 's/.*\$\_(//;s/).*//;s/^'"'"'//;s/'"'"'$//;s/^"//;s/"$//;s/"/\\\\"/g'
+		grep -r 'repo.api.tr(' public/js|sed 's/.*repo.api.tr(//;s/).*//;s/^'"'"'//;s/'"'"'$//;s/^"//;s/"$//'
 		}|sort -u|while read line;do
-			if ! grep -q "\"$line\":" $back;then
+			if ! grep -Fq "\"$line\":" $back;then
 				[ $X -ne 0 ] && echo -n ","
 				echo "	\"$line\": \"${line}\""
 			fi
