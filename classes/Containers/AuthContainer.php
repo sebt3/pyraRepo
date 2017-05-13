@@ -293,10 +293,8 @@ class AuthContainer extends \core {
 
 	// XenForo integration
 	private function xf_probe() {
-		if (!isset($_COOKIE['xf_user']) || !isset($_COOKIE['xf_session'])) return;
-		$xf_user = explode(",", $_COOKIE['xf_user']);
+		if (!isset($_COOKIE['xf_session'])) return;
 		$xf_sess = $_COOKIE['xf_session'];
-		$xf_uid  = $xf_user[0];
 		$s = $this->db->prepare('select session_data from miriad.xf_session where session_id=:s');
 		$s->bindParam(':s', $xf_sess,	PDO::PARAM_STR);
 		$s->execute();
