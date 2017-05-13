@@ -567,4 +567,11 @@ body {
 	margin-left: -1px;
 }
 
-
+/*
+ * Screenshot
+ * ----------------------
+ */
+.carousel-inner .item img {
+	height: 400px;
+	margin: 0 auto;
+}
