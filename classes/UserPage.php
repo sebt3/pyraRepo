@@ -19,6 +19,7 @@ class UserPage extends CorePage {
 // Page Controlers
 
 	public function settingsPage (Request $request, Response $response) {
+		$this->auth->assertAuth($request, $response);
 		$this->menu->breadcrumb = array(
 			array('name' => 'user', 'icon' => 'fa fa-user', 'url' => $this->router->pathFor('user.settings'))
 		);

@@ -303,8 +303,12 @@ class AuthContainer extends \core {
 		if( !($r = $s->fetch()) )
 			return;
 		$data = unserialize($r['session_data']);
-		if (!isset($data['user_id']) || $data['user_id'] != $xf_uid)
+		if (!isset($data['user_id']))
+			return;
+		$xf_uid  = $data['user_id'];
+		/*if (!isset($data['user_id']) || $data['user_id'] != $xf_uid)
 			return; // probably should log as a security breach attempt
+		*/
 
 		// XenForo session is validated, converting
 		$i = $this->db->prepare('insert into users(id,username, isReal) select user_id as id, username, 1 as isReal from miriad.xf_user x where x.user_id=:u on duplicate key update username=x.username');
