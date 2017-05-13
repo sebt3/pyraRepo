@@ -61,9 +61,9 @@ class UploadPage extends CorePage {
 		$c->execute();
 		return $r['id'];
 	}
-	private function getPackageVersion($dbp, $vers, $path, $sdep, $pdep) {
+	private function getPackageVersion($dbp, $vers, $path, $size, $md5, $sha1, $sdep, $pdep) {
 		$date = new DateTime();
-		$i = $this->db->prepare('insert into package_versions(dbp_id, by_user, version, timestamp, path, sys_deps, pkg_deps) values (:dbp, :user, :vers, :ts, :path, :sdep, :pdep) on duplicate key update by_user=:user, version=:vers, timestamp=:ts, path=:path, sys_deps=:sdep, pkg_deps=:pdep');
+		$i = $this->db->prepare('insert into package_versions(dbp_id, by_user, version, timestamp, path, md5sum, sha1sum, filesize, sys_deps, pkg_deps) values (:dbp, :user, :vers, :ts, :path, :md, :sha, :siz, :sdep, :pdep) on duplicate key update by_user=:user, version=:vers, timestamp=:ts, path=:path, sys_deps=:sdep, pkg_deps=:pdep, md5sum=:md, sha1sum=:sha, filesize=:siz');
 		$u = $this->auth->getUserId();
 		$ts = $date->getTimestamp();
 		$i->bindParam(':dbp',  $dbp,   PDO::PARAM_INT);
@@ -73,6 +73,9 @@ class UploadPage extends CorePage {
 		$i->bindParam(':path', $path,  PDO::PARAM_STR);
 		$i->bindParam(':sdep', $sdep,  PDO::PARAM_STR);
 		$i->bindParam(':pdep', $pdep,  PDO::PARAM_STR);
+		$i->bindParam(':md',   $md5,   PDO::PARAM_STR);
+		$i->bindParam(':sha',  $sha1,  PDO::PARAM_STR);
+		$i->bindParam(':siz',  $size,  PDO::PARAM_INT);
 		$i->execute();
 		$s = $this->db->prepare('select id from package_versions where dbp_id=:dbp and version=:vers');
 		$s->bindParam(':dbp',  $dbp,   PDO::PARAM_INT);
@@ -82,7 +85,7 @@ class UploadPage extends CorePage {
 		return $r['id'];
 	}
 	
-	private function addPackage($pack, $fname) {
+	private function addPackage($pack, $fname, $size, $md5, $sha1) {
 		$_ = $this->trans;
 		if (!is_array($pack)) {
 			$this->flash->addMessage('error', $_('Parse failed: No "Package Entry" section found'));
@@ -115,7 +118,7 @@ class UploadPage extends CorePage {
 			}
 		}else 
 			$p = $this->getPackageId($pack['Id'], $pack['Name'], $a, $ico);
-		$v = $this->getPackageVersion($p, $pack['Version'], $path, isset($pack['SysDependency'])?$pack['SysDependency']:null, isset($pack['PkgDependency'])?$pack['PkgDependency']:null);
+		$v = $this->getPackageVersion($p, $pack['Version'], $path, $size, $md5, $sha1, isset($pack['SysDependency'])?$pack['SysDependency']:null, isset($pack['PkgDependency'])?$pack['PkgDependency']:null);
 		$i = $this->db->prepare('update dbpackages set last_vers=:vers where id=:id');
 		$i->bindParam(':id',   $p,   PDO::PARAM_INT);
 		$i->bindParam(':vers', $v,   PDO::PARAM_INT);
@@ -235,7 +238,7 @@ class UploadPage extends CorePage {
 			$parsed = $this->parseDBP(realpath($path));
 			$this->logger->addWarning($id." ".var_export($parsed, true));
 			if (isset($parsed['Package Entry'])) {
-				$id = $this->addPackage($parsed['Package Entry'], $filename);
+				$id = $this->addPackage($parsed['Package Entry'], $filename, $newfile->getSize(), md5_file($path), sha1_file($path));
 				if ($id != 0) {
 					// Adding the apps
 					foreach($parsed as $k => $app) {

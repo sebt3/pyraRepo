@@ -17,7 +17,7 @@ class AppPage extends CorePage {
 		$ret = [];
 		$ret['title'] = $_('Searching apps: ').$q;
 		$ret['body'] = [];
-		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp  * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos
+		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp  * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos, v.md5sum, v.sha1sum, v.filesize
   from	apps a, dbpackages p, package_versions v, archs ar, users u
  where a.dbp_id=p.id
    and p.last_vers=v.id
@@ -44,7 +44,7 @@ order by timestamp desc');
 		$ret = [];
 		$ret['title'] = $_('Category apps');
 		$ret['body'] = [];
-		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp  * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos
+		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp  * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos, v.md5sum, v.sha1sum, v.filesize
   from	apps a, dbpackages p, package_versions v, archs ar, users u, apps_categories c
  where a.dbp_id=p.id
    and p.last_vers=v.id
@@ -72,7 +72,7 @@ order by timestamp desc;');
 		$ret = [];
 		$ret['title'] = $_('All apps');
 		$ret['body'] = [];
-		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp  * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos
+		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp  * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos, v.md5sum, v.sha1sum, v.filesize
   from	apps a, dbpackages p, package_versions v, archs ar, users u
  where a.dbp_id=p.id
    and p.last_vers=v.id
@@ -93,7 +93,7 @@ order by timestamp desc');
 	}
 
 	private function getApp($id) {
-		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos
+		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos, v.md5sum, v.sha1sum, v.filesize
   from	apps a, dbpackages p, package_versions v, archs ar, users u
  where a.dbp_id=p.id
    and p.last_vers=v.id
@@ -162,7 +162,7 @@ order by timestamp desc');
 
 	private function getVersionHistory($id) {
 		$ret = [];
-		$s = $this->db->prepare('select v.id, v.timestamp  * 1000.0 as timestamp, v.version, u.username as uploader, p.str_id as dbp_str_id
+		$s = $this->db->prepare('select v.id, v.timestamp  * 1000.0 as timestamp, v.version, u.username as uploader, p.str_id as dbp_str_id, v.md5sum, v.sha1sum, v.filesize
   from package_versions v, apps a, users u, dbpackages p
  where v.dbp_id = a.dbp_id
    and p.id = v.dbp_id

@@ -16,7 +16,7 @@ class PackagePage extends CorePage {
 		$ret = [];
 		$ret['title'] = $_('All packages');
 		$ret['body'] = [];
-		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos
+		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, v.md5sum, v.sha1sum, v.filesize
   from	dbpackages p, package_versions v, archs ar, users u
  where p.last_vers=v.id
    and p.arch_id=ar.id
@@ -33,7 +33,7 @@ class PackagePage extends CorePage {
 		return $ret;
 	}
 	private function getPackage($id) {
-		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, p.forumurl, p.upurl, p.upsrcurl, p.srcurl, p.licenseurl, p.last_vers, p.lic_id, p.lic_detail
+		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, p.forumurl, p.upurl, p.upsrcurl, p.srcurl, p.licenseurl, p.last_vers, p.lic_id, p.lic_detail, v.md5sum, v.sha1sum, v.filesize
   from	dbpackages p, package_versions v, archs ar, users u
  where p.last_vers=v.id
    and p.arch_id=ar.id
@@ -48,7 +48,7 @@ class PackagePage extends CorePage {
 		return $r;
 	}
 	private function getPackageVersion($str, $id) {
-		$s = $this->db->prepare('select v.version, v.path, p.str_id as dbp_str_id
+		$s = $this->db->prepare('select v.version, v.path, p.str_id as dbp_str_id, v.md5sum, v.sha1sum, v.filesize
   from package_versions v, dbpackages p
  where v.dbp_id=p.id
    and p.enabled=1
@@ -65,7 +65,7 @@ class PackagePage extends CorePage {
 		$ret = [];
 		$ret['title'] = $_('All packages');
 		$ret['body'] = [];
-		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos
+		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos, v.md5sum, v.sha1sum, v.filesize
   from	apps a, dbpackages p, package_versions v, archs ar, users u
  where a.dbp_id=p.id
    and p.last_vers=v.id
@@ -126,6 +126,7 @@ class PackagePage extends CorePage {
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->execute();
 		while($r = $s->fetch()) {
+			$r['url'] = $GLOBALS['repo_base'].$r['url'];
 			$ret[] = $r;
 		}
 		return $ret;
@@ -133,7 +134,7 @@ class PackagePage extends CorePage {
 
 	private function getVersionHistory($id) {
 		$ret = [];
-		$s = $this->db->prepare('select v.id, v.timestamp  * 1000.0 as timestamp, v.version, u.username as uploader, p.str_id as dbp_str_id
+		$s = $this->db->prepare('select v.id, v.timestamp  * 1000.0 as timestamp, v.version, u.username as uploader, p.str_id as dbp_str_id, v.md5sum, v.sha1sum, v.filesize
   from package_versions v, users u, dbpackages p
  where v.dbp_id = :id
    and p.id = v.dbp_id
@@ -147,6 +148,9 @@ class PackagePage extends CorePage {
 				'ts'	=> array( 'text' => $this->formatTimestamp($r['timestamp'])),
 				'ver'	=> array( 'text' => $r['version']),
 				'maint'	=> array( 'text' => $r['uploader']),
+				'size'	=> array( 'text' => $r['filesize']),
+				'md5'	=> array( 'text' => $r['md5sum']),
+				'sha1'	=> array( 'text' => $r['sha1sum']),
 				'downl'	=> array( 'icon' => 'fa fa-download', 'text' => 'Download', 'url' => $this->router->pathFor('packages.download.version', array('id'=> $r['id'], 'str' => $r['dbp_str_id'])))
 			);
 		}

@@ -14,6 +14,7 @@
 	repo.api = repo.api || { }
 	repo.chart = repo.chart || { }
 	repo.api.format = repo.api.format || { }
+	repo.api.format.fileSize = d3.format(".2s");
 	repo.api.format.dateAxe	= function(date) {
 		var	locale = d3.timeFormatLocale({
 				"dateTime": "%A, le %e %B %Y, %X",
@@ -172,6 +173,7 @@
 				.item('uploader', item.data().username)
 				.item('version', item.data().version)
 				.item('arch', item.data().arch)
+				.item('size', repo.api.format.fileSize(item.data().filesize))
 			);
 		});
 
@@ -232,6 +234,7 @@
 				.item('uploader', item.data().username)
 				.item('version', item.data().version)
 				.item('arch', item.data().arch)
+				.item('size', repo.api.format.fileSize(item.data().filesize))
 				.item('date', repo.api.format.date(item.data().timestamp));
 			if(item.data().forumurl != null)
 				table.item('Forum','link', item.data().forumurl);

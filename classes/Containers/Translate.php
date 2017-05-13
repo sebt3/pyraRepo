@@ -7,16 +7,19 @@ class Translate extends \core {
 	private $trans;
 	public function __construct(Container $ci) {
 		parent::__construct($ci);
-		$a = array_intersect(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']), array('fr-FR','en-US'));
+		$this->lang = 'en-US';
+		$a = array_intersect(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']), array('fr-FR', 'it-IT', 'de-DE', 'en-US'));
 		if (empty($a)) {
 			$this->trans = array();
 		} else {
-			$f = __DIR__.'/../../langs/'.$a[0].'.json';
+			$f = __DIR__.'/../../public/langs/'.$a[0].'.json';
 			if (file_exists($f)) {
 				$j = file_get_contents($f);
 				$this->trans = json_decode($j, true);
 				if ($this->trans == null)
 					$this->trans = array();
+				else
+					$this->lang = $a[0];
 			} else	$this->trans = array();
 		}
 	}
@@ -35,6 +38,10 @@ class Translate extends \core {
 		$this->logger->addWarning('Translator() arg#1 is not a string but '.gettype($str)."$str");
 		return "";
 		//return _($str);
+	}
+	
+	public function getLang() {
+		return $this->lang;
 	}
 }
 
