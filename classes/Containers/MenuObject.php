@@ -39,11 +39,10 @@ class MenuObject extends \core {
 
 	public function __invoke(Request $request, Response $response, callable $next) {
 		$uri = $request->getUri();
-		$this->url = $uri->getBasePath();
-		if($this->url="")
+		if($GLOBALS['repo_base']=="")
 			$this->url = $uri->getPath();
 		else
-			$this->url = $this->url.'/'.$uri->getPath();
+			$this->url = $GLOBALS['repo_base'].'/'.$uri->getPath();
 		return $response = $next($request, $response);
 	}
 }
