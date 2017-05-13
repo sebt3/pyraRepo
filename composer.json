@@ -10,7 +10,8 @@
         "fortawesome/font-awesome": "^4.7",
         "driftyco/ionicons": "^2.0",
         "sebt3/d3-bootstrap": "dev-master",
-        "components/flag-icon-css": "^2.8"
+        "components/flag-icon-css": "^2.8",
+        "dflydev/fig-cookies": "^1.0"
     },
     "scripts": {
 	"post-update-cmd": [

@@ -51,7 +51,6 @@
 {% endif %}
                 </ul>
 		<ul class="nav navbar-nav navbar-right">
-{% if menu.isAuth %}
 		  <li class="dropdown">
 		    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
   {% if lang == 'fr-FR' %}
@@ -65,13 +64,12 @@
   {% endif %}
 		    <span class="caret"></span></a>
 		    <ul class="dropdown-menu">
-		     <li><span class="flag-icon flag-icon-gb flag-icon-squared"></span> {{ _('English') }}</li>
-		     <li><span class="flag-icon flag-icon-fr flag-icon-squared"></span> {{ _('French') }}</li>
-		     <li><span class="flag-icon flag-icon-it flag-icon-squared"></span> {{ _('Italian') }}</li>
-		     <li><span class="flag-icon flag-icon-de flag-icon-squared"></span> {{ _('German') }}</li>
+		     <li><a href="{{ path_for('user.lang') }}?lang=en-US&referer={{ menu.url }}"><span class="flag-icon flag-icon-gb flag-icon-squared"></span> {{ _('English') }}</a></li>
+		     <li><a href="{{ path_for('user.lang') }}?lang=fr-FR&referer={{ menu.url }}"><span class="flag-icon flag-icon-fr flag-icon-squared"></span> {{ _('French') }}</a></li>
+		     <li><a href="{{ path_for('user.lang') }}?lang=de-DE&referer={{ menu.url }}"><span class="flag-icon flag-icon-de flag-icon-squared"></span> {{ _('German') }}</a></li>
+		     <li><a href="{{ path_for('user.lang') }}?lang=it-IT&referer={{ menu.url }}"><span class="flag-icon flag-icon-it flag-icon-squared"></span> {{ _('Italian') }}</a></li>
 		    </ul>
 		  </li>
-{% endif %}
 		  <li>
 		    <form class="navbar-form" role="search" action="{{ path_for('apps.list') }}">
 		      <div class="input-group">
@@ -93,6 +91,10 @@
   {% if not use_xf %}
                 <div class="pull-right">
                   <a href="{{ path_for('auth.signout') }}" class="btn btn-warning btn-flat">Sign out</a>
+                </div>
+  {% else %}
+                <div class="pull-right">
+                  <a href="/boards/logout" class="btn btn-warning btn-flat">Sign out</a>
                 </div>
   {% endif %}
               </li>
@@ -117,6 +119,21 @@
                   <button type="submit" class="btn btn-primary btn-block btn-flat">{{ _('Sign In') }}</button>
 		  <a href="{{ path_for('auth.register') }}" class="btn btn-warning btn-block btn-flat">Register</a>
 		  </div></div>
+              </li>
+    </form>
+{% else %}
+    <form action="/boards/login/login" method="post">
+	<input type="hidden" name="redirect" value="{{ menu.url }}" />
+              <li class="user-body">
+                <p class="login-box-msg">{{ _('Sign in to start your session') }}</p>
+      <div class="form-group has-feedback">
+        <input type="text" name="login" class="form-control" placeholder="{{ _('Username') }}">
+        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+      </div>
+      <div class="form-group has-feedback">
+        <input type="password" name="password" class="form-control" placeholder="{{ _('Password') }}">
+        <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+      </div>
               </li>
     </form>
 {% endif %}

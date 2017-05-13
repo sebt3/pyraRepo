@@ -2,11 +2,17 @@
 use Interop\Container\ContainerInterface;
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-
+use Dflydev\FigCookies\FigResponseCookies;
+use Dflydev\FigCookies\SetCookie;
 
 class UserPage extends CorePage {
 	public function __construct(ContainerInterface $ci) { 
 		parent::__construct($ci);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Model
+	private function setLang($lang) {
+		return $lang;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,6 +24,19 @@ class UserPage extends CorePage {
 		);
  		return $this->view->render($response, 'settings.twig', []);
 	}
+
+	public function setLangGet(Request $request, Response $response) {
+		$lang = $request->getQueryParam('lang');
+		$response = FigResponseCookies::set($response, SetCookie::create('lang')->withPath('/')->rememberForever()
+->withValue($lang));
+		if ($this->auth->authenticated())
+			$this->setLang($lang);
+		$ref  = $request->getQueryParam('referer');
+		if ($ref != null && $ref != '')
+			return $response->withRedirect($ref);
+		return $response->withRedirect($this->router->pathFor('user.settings'));
+	}
+
 	public function passwordPost(Request $request, Response $response) {
 		$_ = $this->trans;
 		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {

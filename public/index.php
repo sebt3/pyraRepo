@@ -71,6 +71,10 @@ $container['notAllowedHandler'] = function ($c) {	return new \Containers\NotAllo
 /////////////////////////////////////////////////////////////////////////////////////////////
 // middlewares
 //$app->add(new \Containers\Finalyse($container));
+$app->add(function ($request, $response, $next) use ($container) {
+	$m = $container->menu;
+	return $m($request, $response, $next);
+});
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Routes 
@@ -112,10 +116,11 @@ $app->group('/upload', function () use ($app) {
 });
 $app->group('/me', function () use ($app) {
 	$app->get('',		'\UserPage:settingsPage')->setName('user.settings');
+	$app->get('/lang',	'\UserPage:setLangGet')->setName('user.lang');
 	$app->post('/pass',	'\UserPage:passwordPost')->setName('user.password');
 })->add(function ($request, $response, $next) {
-    $this->auth->assertAuth($request, $response);
-    return $response = $next($request, $response);
+	$this->auth->assertAuth($request, $response);
+	return $response = $next($request, $response);
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////

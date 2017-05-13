@@ -1,5 +1,7 @@
 <?php
 namespace Containers;
+use \Psr\Http\Message\ServerRequestInterface as Request;
+use \Psr\Http\Message\ResponseInterface as Response;
 use Interop\Container\ContainerInterface as Container;
 use \PDO as PDO;
 
@@ -10,6 +12,7 @@ class MenuObject extends \core {
 	public $isMaintainer;
 	public $username;
 	public $categories;
+	public $url;
 
 	private function getCategories() {
 		$ret = [];
@@ -32,6 +35,12 @@ class MenuObject extends \core {
 		$this->isMaintainer	= false;
 		$this->username		= $ci->auth->getUserName();
 		$this->categories	= $this->getCategories();
+	}
+
+	public function __invoke(Request $request, Response $response, callable $next) {
+		$uri = $request->getUri();
+		$this->url = $uri->getBasePath().$uri->getPath();
+		return $response = $next($request, $response);
 	}
 }
 ?>
