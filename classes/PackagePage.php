@@ -409,7 +409,8 @@ class PackagePage extends CorePage {
 
 		$stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
 
-		return $response->withHeader('Content-Type', 'application/force-download')
+		return $response->withBody($stream)
+				->withHeader('Content-Type', 'application/force-download')
 				->withHeader('Content-Type', 'application/octet-stream')
 				->withHeader('Content-Type', 'application/download')
 				->withHeader('Content-Description', 'File Transfer')
@@ -417,8 +418,7 @@ class PackagePage extends CorePage {
 				->withHeader('Content-Disposition', 'attachment; filename="' . $p['dbp_str_id'].'-'.$p['version'].'.dbp' . '"')
 				->withHeader('Expires', '0')
 				->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
-				->withHeader('Pragma', 'public')
-				->withBody($stream);
+				->withHeader('Pragma', 'public');
 	}
 	public function packageVersionDownload (Request $request, Response $response) {
 		$_ = $this->trans;
@@ -434,7 +434,8 @@ class PackagePage extends CorePage {
 
 		$stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
 
-		return $response->withHeader('Content-Type', 'application/force-download')
+		return $response->withBody($stream)
+				->withHeader('Content-Type', 'application/force-download')
 				->withHeader('Content-Type', 'application/octet-stream')
 				->withHeader('Content-Type', 'application/download')
 				->withHeader('Content-Description', 'File Transfer')
@@ -442,8 +443,7 @@ class PackagePage extends CorePage {
 				->withHeader('Content-Disposition', 'attachment; filename="' . $v['dbp_str_id'].'-'.$v['version'].'.dbp' . '"')
 				->withHeader('Expires', '0')
 				->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
-				->withHeader('Pragma', 'public')
-				->withBody($stream);
+				->withHeader('Pragma', 'public');
 	}
 	public function descriptionPost (Request $request, Response $response) {
 		$_ = $this->trans;

@@ -86,6 +86,8 @@ $app->group('/auth', function () use ($app) {
 	$app->get('/signout',	'\Containers\AuthContainer:signout')->setName('auth.signout');
 });
 $app->get('/',		'\HomePage:homePage')->setName('home');
+$app->get('/feed.rss',	'\RssPage:rssPage');
+$app->get('/feed/rss',	'\RssPage:rssPage')->setName('rss');
 $app->group('/packages', function () use ($app) {
 	$app->get('',				'\PackagePage:packagesPage')->setName('packages.list');
 	$app->get('/{id:[0-9]+}',		'\PackagePage:packageByIdPage')->setName('packages.byId');
