@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>DBP repository</title>
+        <link>https://pyra-handheld.com/repo/</link>
+        <description>Feed from the lastest upload to the DBP repository</description>
+        <language>en-us</language>
+        <copyright>Copyright Sebastien Huss</copyright>
+        <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+        <managingEditor>sebt3@pyra-handheld.com</managingEditor>
+        <webMaster>sebt3@pyra-handheld.com</webMaster>
+
+{% for f in list %}
+        <item>
+            <title>{{ f.name }} {{ f.version }} ({% if f.cnt == 1 %}New{% else %}Update{% endif %})</title>
+            <pubDate>{{ f.date }}</pubDate>
+            <guid isPermaLink="true">{{ f.url }}</guid>
+            <link>{{ f.url }}</link>
+            <description>
+                <![CDATA[
+                {{ f.infos }}
+                ]]>
+            </description>
+        </item>
+{% endfor %}
+
+    </channel>
+</rss>
