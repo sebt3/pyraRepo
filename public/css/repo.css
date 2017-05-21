@@ -3,13 +3,30 @@ section.menu {
 }
 
 body {
-	background-color: #DDD;
+	background-color: rgb(234, 237, 242);
 }
 a.navbar-brand {
 	margin-right: 50px;
 }
 
-/*
+.navbar-top-repo {
+	background-color:rgb(108, 47, 52);
+}
+.navbar-top-repo a {
+	color:#EEE;
+}
+.navbar-top-repo a:hover,
+.navbar-top-repo .dropdown.open a.dropdown-toggle {
+	color:rgb(108, 47, 52);
+}
+.navbar-top-repo a.navbar-brand:hover {
+	color:#FFFFFF;
+}
+div.footer.container-fluid {
+	background-color:rgb(108, 47, 52);
+	color:#EEE;
+}
+
  * Page: Login & Register
  * ----------------------
  */
