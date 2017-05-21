@@ -91,9 +91,10 @@ class AuthContainer extends \core {
 			$_SESSION['canary']['birth'] = time();
 			
 		}
-		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf'])
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf']) {
+			unset($_SESSION['auth_id']);
 			$this->xf_probe();
-		else if ($this->authenticated())
+		} else if ($this->authenticated())
 			$this->user_id = $_SESSION['auth_id'];
 	}
 
