@@ -85,6 +85,37 @@ class PackagePage extends CorePage {
 		}
 		return $ret;
 	}
+	private function getPackageMaintainers($id, $str) {
+		$_ = $this->trans;
+		$ret = [];
+		$s = $this->db->prepare('select u.username, p.user_id
+  from users u, packages_maintainers p
+ where u.id=p.user_id
+   and dbp_id=:id');
+		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = array(
+				'user'	=> array( 'text' => $r['username']),
+				'actions'=> array(array( 'icon' => 'fa fa-trash-o', 'url' => $this->router->pathFor('packages.maintainer.delete', array('uid'=> $r['user_id'], 'str' => $str))))
+			);
+		}
+		return $ret;
+	}
+	private function getUsers($id) {
+		$_ = $this->trans;
+		$ret = [];
+		$s = $this->db->prepare('select u.username, u.id as user_id
+  from users u
+ where u.id not in (select user_id from packages_maintainers where dbp_id=:id)
+   and u.isReal=1');
+		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = $r;
+		}
+		return $ret;
+	}
 	private function getPackageId($str) {
 		$s = $this->db->prepare('select id from	dbpackages where str_id=:str');
 		$s->bindParam(':str',	$str,		PDO::PARAM_STR);
@@ -151,7 +182,7 @@ class PackagePage extends CorePage {
 				'size'	=> array( 'text' => $r['filesize']),
 				'md5'	=> array( 'text' => $r['md5sum']),
 				'sha1'	=> array( 'text' => $r['sha1sum']),
-				'downl'	=> array( 'icon' => 'fa fa-download', 'text' => 'Download', 'url' => $this->router->pathFor('packages.download.version', array('id'=> $r['id'], 'str' => $r['dbp_str_id'])))
+				'actions'	=> array(array( 'icon' => 'fa fa-download', 'url' => $this->router->pathFor('packages.download.version', array('id'=> $r['id'], 'str' => $r['dbp_str_id']))))
 			);
 		}
 		return $ret;
@@ -232,6 +263,22 @@ class PackagePage extends CorePage {
 		$s->bindParam(':ts',	$ts,	PDO::PARAM_INT);
 		$s->bindParam(':uid',	$u,	PDO::PARAM_INT);
 		$s->bindParam(':comm',	$comm,	PDO::PARAM_STR);
+		$s->execute();
+	}
+	
+	private function removeMaintainer($id, $uid) {
+		$ret	= [];
+		$s = $this->db->prepare('delete from packages_maintainers where dbp_id=:id and user_id=:uid');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':uid',	$uid,	PDO::PARAM_INT);
+		$s->execute();
+	}
+
+	private function addMaintainer($id, $uid) {
+		$ret	= [];
+		$s = $this->db->prepare('insert into packages_maintainers(dbp_id,user_id) values(:id, :uid) on duplicate key update user_id=:uid');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':uid',	$uid,	PDO::PARAM_INT);
 		$s->execute();
 	}
 
@@ -318,7 +365,32 @@ class PackagePage extends CorePage {
  		return $this->view->render($response, 'packageEdit.twig', [
 			'p'	=> $p,
 			'apps'	=> $this->getPackageApps($id),
-			'lics'	=> $this->getLicenses()
+			'lics'	=> $this->getLicenses(),
+			'maintainers' => $this->getPackageMaintainers($id, $str)
+ 		]);
+	}
+	public function maintainerAdd (Request $request, Response $response) {
+		$_ = $this->trans;
+		$str = $request->getAttribute('str');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_('You cannot edit this package'));
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $str)));
+		}
+		$this->menu->breadcrumb = array(
+			array('name' => 'packages', 'icon' => 'fa fa-archive', 'url' => $this->router->pathFor('packages.list')),
+			array('name' => $p['name'], 'url' => $this->router->pathFor('packages.byStr', array('str'=> $str))),
+			array('name' => 'edit', 'icon' => 'fa fa-pencil', 'url' => $this->router->pathFor('packages.edit', array('str'=> $str))),
+			array('name' => 'maintainer', 'icon' => 'fa fa-plus', 'url' => $this->router->pathFor('packages.maintainer.add', array('str'=> $str)))
+		);
+ 		return $this->view->render($response, 'packageMaintainerAdd.twig', [
+			'p'	=> $p,
+			'users' => $this->getUsers($id)
  		]);
 	}
 	public function packageDownload (Request $request, Response $response) {
@@ -425,6 +497,49 @@ class PackagePage extends CorePage {
 		$this->flash->addMessage('info', $_("Licence updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
+	public function maintainerDeletePost (Request $request, Response $response) {
+		$_ = $this->trans;
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$uid = $request->getAttribute('uid');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
+		}
+		if($uid == $this->auth->getUserId()) {
+			$this->flash->addMessage('error', $_("You cannot remove yourself from the list of maintainers"));
+			return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+		}
+		$this->removeMaintainer($id, $uid);
+		$this->flash->addMessage('info', $_("Permissions updated"));
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}
+	public function maintainerPost (Request $request, Response $response) {
+		$_ = $this->trans;
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$uid = $request->getAttribute('uid');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
+		}
+		$this->addMaintainer($id, $request->getParam('uid'));
+		$this->flash->addMessage('info', $_("Maintainer added"));
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}
+
 }
 
 ?>

@@ -90,13 +90,26 @@ $app->group('/packages', function () use ($app) {
 	$app->get('',				'\PackagePage:packagesPage')->setName('packages.list');
 	$app->get('/{id:[0-9]+}',		'\PackagePage:packageByIdPage')->setName('packages.byId');
 	$app->get('/{str}',			'\PackagePage:packageByStrPage')->setName('packages.byStr');
-	$app->get('/{str}/edit',		'\PackagePage:packageEditPage')->setName('packages.edit');
 	$app->get('/{str}/download',		'\PackagePage:packageDownload')->setName('packages.download');
 	$app->get('/{str}/{id:[0-9]+}/download','\PackagePage:packageVersionDownload')->setName('packages.download.version');
-	$app->post('/{str}/edit/description',	'\PackagePage:descriptionPost')->setName('packages.edit.desc');
-	$app->post('/{str}/edit/urls',		'\PackagePage:urlsPost')->setName('packages.edit.urls');
-	$app->post('/{str}/edit/license',	'\PackagePage:licensePost')->setName('packages.edit.license');
 	$app->post('/{str}/comment/add',	'\PackagePage:commentPost')->setName('packages.comment.add');
+	$app->group('/{str}/edit', function () use ($app) {
+		$app->get('',			'\PackagePage:packageEditPage')->setName('packages.edit');
+		$app->post('/description',	'\PackagePage:descriptionPost')->setName('packages.edit.desc');
+		$app->post('/urls',		'\PackagePage:urlsPost')->setName('packages.edit.urls');
+		$app->post('/license',		'\PackagePage:licensePost')->setName('packages.edit.license');
+	})->add(function ($request, $response, $next) {
+		$this->auth->assertAuth($request, $response);
+		return $response = $next($request, $response);
+	});
+	$app->group('/{str}/maintainer', function () use ($app) {
+		$app->get('/{uid:[0-9]+}/del',	'\PackagePage:maintainerDeletePost')->setName('packages.maintainer.delete');
+		$app->get('/add',		'\PackagePage:maintainerAdd')->setName('packages.maintainer.add');
+		$app->post('/add',		'\PackagePage:maintainerPost');
+	})->add(function ($request, $response, $next) {
+		$this->auth->assertAuth($request, $response);
+		return $response = $next($request, $response);
+	});
 });
 $app->group('/apps', function () use ($app) {
 	$app->get('',				'\AppPage:appsPage')->setName('apps.list');

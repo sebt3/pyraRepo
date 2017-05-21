@@ -21,6 +21,12 @@ create table user_tokens (
 );
 create index user_tokens_user_i on user_tokens(user_id);
 
+create table user_superAdmin (
+	user_id		int(32) unsigned not null,
+	constraint unique index user_superAdmin_u(user_id),
+	constraint user_superAdmin_user_fk foreign key(user_id) references users(id) on delete cascade on update cascade
+);
+
 create table langs (
 	id 		int(32) unsigned auto_increment,
 	name 		varchar(256) not null, 

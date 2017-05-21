@@ -26,7 +26,12 @@ d3.select('section.content').call(bs.union()
 		.add("{{ l.name }}",{{ l.id }})
 {% endfor %}
 		)).item(bs.formGroup('name').label("{{ _('License name') }}").type("text").value("{{ p.lic_detail }}"))
-	)))
+	))).item(bs.box().title("{{ _('Maintainers') }}").tool(bs.button.a().url("{{ path_for('packages.maintainer.add', {'str': p.dbp_str_id}) }}").icon('fa fa-plus').text("{{ _('Add') }}")).body(repo.chart.table()
+				.col("{{ _('username') }}")
+				.col("{{ _('Remove') }}", 'text-right').body({{ json(maintainers) }})
+	/*)).item(bs.box().title("{{ _('Versions') }}").body(bs.union()*/
+	)).item(bs.box().title("{{ _('Delete package') }}").class('box-solid box-danger').body(bs.union()
+	))
 );
 });
 </script>

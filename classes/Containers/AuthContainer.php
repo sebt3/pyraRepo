@@ -111,7 +111,12 @@ class AuthContainer extends \core {
 	}
 	public function isPackageMaintainer($id) {
 		$u = $this->auth->getUserId();
-		$s = $this->db->prepare('select count(*) as cnt from packages_maintainers where dbp_id=:dbp and user_id=:user');
+		$s = $this->db->prepare('select count(*) as cnt 
+  from (
+	select user_id from packages_maintainers where dbp_id=:dbp and user_id=:user
+	union all
+	select user_id from user_superAdmin where user_id=:user
+) x');
 		$s->bindParam(':dbp',  $id, PDO::PARAM_INT);
 		$s->bindParam(':user', $u,  PDO::PARAM_INT);
 		$s->execute();
@@ -313,7 +318,7 @@ class AuthContainer extends \core {
 		$i->bindParam(':u', $xf_uid,	PDO::PARAM_INT);
 		$i->execute();
 
-		$_SESSION['auth_id']	= $xf_uid;
+		//$_SESSION['auth_id']	= $xf_uid;
 		$this->user_id		= $xf_uid;
 	}
 

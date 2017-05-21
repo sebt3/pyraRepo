@@ -177,7 +177,7 @@ order by timestamp desc');
 				'ts'	=> array( 'text' => $this->formatTimestamp($r['timestamp'])),
 				'ver'	=> array( 'text' => $r['version']),
 				'maint'	=> array( 'text' => $r['uploader']),
-				'downl'	=> array( 'icon' => 'fa fa-download', 'text' => 'Download', 'url' => $this->router->pathFor('packages.download.version', array('id'=> $r['id'], 'str' => $r['dbp_str_id'])))
+				'actions'	=> array(array( 'icon' => 'fa fa-download', 'url' => $this->router->pathFor('packages.download.version', array('id'=> $r['id'], 'str' => $r['dbp_str_id']))))
 			);
 		}
 		return $ret;

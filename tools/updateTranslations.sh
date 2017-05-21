@@ -1,6 +1,6 @@
 #/bin/sh
 
-for lang in fr-FR it-IT de-DE;do
+for lang in fr-FR it-IT de-DE nl-NL;do
 
 	file=public/langs/${lang}.json
 	back="${file}.back"

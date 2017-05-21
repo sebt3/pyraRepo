@@ -1,0 +1,26 @@
+{% extends "core.twig" %}
+{% block title %}{{ _('Package') }} {{ p.name }}{% endblock %}
+{% block contentHeader %}
+        {{ _('Package') }}
+        <small>{{ p.name }}</small>
+{% endblock %}
+{% block scripts %}
+<script>
+repo.api.dispatch.on('ready', function() {
+d3.select('section.content').call(bs.row()
+	.cell('col-lg-8 col-lg-offset-2', bs.form().url("{{ path_for('packages.maintainer.add', {'str': p.dbp_str_id}) }}").body(bs.box().class('box-info')
+		.title("{{ _('Add a new maintainer') }}").body(bs.union()
+			.item(bs.formGroup('uid').label("{{ _('User') }}").obj(
+				bs.select('uid')
+	{% for a in users %}
+					.add("{{ a.username }}",{{ a.user_id }})
+	{% endfor %}
+			))
+		).footer(bs.button.group()
+			.left(bs.button.a().text("{{ _('Cancel') }}").icon("fa fa-arrow-left").url("{{ path_for('packages.edit', {'str': p.dbp_str_id}) }}"))
+			.right(bs.button.form().text("{{ _('Add') }}").icon("fa fa-plus").class('btn-info'))
+)))
+);
+});
+</script>
+{% endblock %}
