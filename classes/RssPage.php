@@ -29,7 +29,7 @@ class RssPage extends CorePage {
  order by v.timestamp desc limit 0,10');
 		$s->execute();
 		while($r = $s->fetch()) {
-			$r['url'] = $uri->getScheme().'://'.$uri->getHost().':'.$uri->getPort().$this->router->pathFor('packages.byStr', array('str'=> $r['str_id']));
+			$r['url'] = $uri->getScheme().'://'.$uri->getHost().$this->router->pathFor('packages.byStr', array('str'=> $r['str_id']));
 			$r['date'] = date('r',$r['timestamp']);
 			$ret[] = $r;
 		}
