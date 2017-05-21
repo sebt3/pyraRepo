@@ -126,6 +126,8 @@
     </form>
 {% else %}
     <form action="/boards/login/login" method="post">
+	<input name="cookie_check" value="1" type="hidden" />
+	<input name="_xfToken" value="" type="hidden" />
 	<input type="hidden" name="redirect" value="{{ menu.url }}" />
               <li class="user-body">
                 <p class="login-box-msg">{{ _('Sign in to start your session') }}</p>
@@ -137,6 +139,13 @@
         <input type="password" name="password" class="form-control" placeholder="{{ _('Password') }}">
         <span class="glyphicon glyphicon-lock form-control-feedback"></span>
       </div>
+              </li>
+              <li class="user-footer">
+		      <div class="row">
+			<div class="col-xs-6"></div>
+			<div class="col-xs-6 pull-right">
+			  <button type="submit" class="btn btn-primary btn-block btn-flat">{{ _('Sign In') }}</button>
+		      </div></div>
               </li>
     </form>
 {% endif %}
