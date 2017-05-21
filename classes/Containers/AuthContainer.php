@@ -91,10 +91,10 @@ class AuthContainer extends \core {
 			$_SESSION['canary']['birth'] = time();
 			
 		}
-		if ($this->authenticated())
-			$this->user_id = $_SESSION['auth_id'];
-		else if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf'])
+		if (isset($GLOBALS['use_xf']) && $GLOBALS['use_xf'])
 			$this->xf_probe();
+		else if ($this->authenticated())
+			$this->user_id = $_SESSION['auth_id'];
 	}
 
 	public function getUserId() {
@@ -318,7 +318,7 @@ class AuthContainer extends \core {
 		$i->bindParam(':u', $xf_uid,	PDO::PARAM_INT);
 		$i->execute();
 
-		//$_SESSION['auth_id']	= $xf_uid;
+		$_SESSION['auth_id']	= $xf_uid;
 		$this->user_id		= $xf_uid;
 	}
 
