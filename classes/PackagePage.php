@@ -91,7 +91,8 @@ class PackagePage extends CorePage {
 		$s = $this->db->prepare('select u.username, p.user_id
   from users u, packages_maintainers p
  where u.id=p.user_id
-   and dbp_id=:id');
+   and dbp_id=:id
+ order by username asc');
 		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
 		$s->execute();
 		while($r = $s->fetch()) {
@@ -108,7 +109,8 @@ class PackagePage extends CorePage {
 		$s = $this->db->prepare('select u.username, u.id as user_id
   from users u
  where u.id not in (select user_id from packages_maintainers where dbp_id=:id)
-   and u.isReal=1');
+   and u.isReal=1
+ order by username asc');
 		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
 		$s->execute();
 		while($r = $s->fetch()) {

@@ -479,6 +479,21 @@ body {
   width: 100%;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
+.packageItem .packageItem-head {
+	overflow:hidden;
+	height: 33px;
+}
+.packageItem .packageItem-body tr {
+	overflow:hidden;
+	height: 20px;
+}
+.packageItem .packageItem-body table tbody td {
+	max-width: 0;
+	overflow:hidden;
+	text-overflow: ellipsis; 
+	white-space: nowrap;
+	width: 60%;
+}
 .packageItem .packageItem-head .packageItem-icon {
 	margin-right: 10px;
 }
@@ -503,6 +518,21 @@ body {
   margin-bottom: 20px;
   width: 100%;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+.appItem .appItem-head {
+	overflow:hidden;
+	height: 33px;
+}
+.appItem .appItem-body tr {
+	overflow:hidden;
+	height: 20px;
+}
+.appItem .appItem-body table tbody td {
+	max-width: 0;
+	overflow:hidden;
+	text-overflow: ellipsis; 
+	white-space: nowrap;
+	width: 60%;
 }
 .appItem .appItem-head .appItem-icon {
 	margin-right: 10px;
