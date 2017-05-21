@@ -36,12 +36,6 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a href="https://pyra-handheld.com/boards/">Forum</a>
-                    </li>
-                    <li>
-                        <a href="{{ path_for('packages.list') }}">Packages</a>
-                    </li>
-                    <li>
                         <a href="{{ path_for('apps.list') }}">Apps</a>
                     </li>
 {% if menu.isAuth %}
@@ -49,6 +43,9 @@
                         <a href="{{ path_for('upload') }}">Upload</a>
                     </li>
 {% endif %}
+                    <li>
+                        <a href="https://pyra-handheld.com/boards/">Forum</a>
+                    </li>
                 </ul>
 		<ul class="nav navbar-nav navbar-right">
 		  <li class="dropdown">
@@ -159,11 +156,10 @@
         <div class="row">
     <!-- Page Menu -->
             <div class="col-md-2 hidden-sm hidden-xs hidden-print">
-                <div class="list-group" id="menu">
-{% for c in menu.categories %}
-                    <a href="{{ c.url }}" class="list-group-item">{{ c.name }} ({{ c.app_cnt }})</a>
-{% endfor %}
-                </div>
+<section class="menu">
+{% block leftMenu %}
+{% endblock %}
+</section>
             </div>
 
             <div class="col-md-10">

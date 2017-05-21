@@ -347,6 +347,25 @@
 
 		return cmts;
 	}
+	repo.widgets.likes = function() {
+		var likes = repo.widgets.core.base();
+		var btn, cnt, icn;
+		likes.dispatch.on("init.likes.widgets", function() {
+			btn	= likes.root().append('a').attr('href','#').attr('class', 'likes btn btn-primary');
+			cnt	= btn.append('span').attr('class','badge').text('0');
+			icn	= btn.append('i').attr('aria-hidden','true').attr('class','fa fa-thumbs-o-up');
+		});
+		likes.dispatch.on("renderUpdate.likes.widgets", function() {
+			cnt.text(likes.data().total);
+			btn.attr('href',likes.data().url);
+			if(likes.data().me>0) {
+				btn.classed('btn-primary',false).classed('btn-success',true);
+				icn.classed('fa-thumbs-o-up',false).classed('fa-thumbs-up',true);
+			}
+		});
+
+		return likes;
+	}
 
 	//repo.widgets.pckListItem = 
 }));

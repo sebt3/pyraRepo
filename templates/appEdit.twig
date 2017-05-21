@@ -4,6 +4,11 @@
         {{ _('App') }}
         <small>{{ a.name }}</small>
 {% endblock %}
+{% block leftMenu %}
+                <div class="list-group" id="menu">
+                    <a href="{{ path_for('packages.edit', {'str': a.dbp_str_id}) }}" class="list-group-item">{{ _('Package') }}</a>
+                </div>
+{% endblock %}
 {% block scripts %}
 <script>
 repo.api.dispatch.on('ready', function() {

@@ -10,20 +10,15 @@
 {% block scripts %}
 <script>
 repo.api.dispatch.on('ready', function() {
-d3.select('section.content').call(bs.union()
-	.item(bs.row()
-		.cell('col-lg-3', bs.union()
+d3.select('section.menu').call(bs.union()
 		.item(repo.widgets.items.pckFull().data({{ json(p) }}))
 		.item(bs.button.a().url("{{ path_for('packages.download', {'str': p.dbp_str_id}) }}").text("{{ _('Download') }}").icon('fa fa-download'))
 {% if menu.isMaintainer %}
 		.item(bs.button.a().url("{{ path_for('packages.edit', {'str': p.dbp_str_id}) }}").text("{{ _('Edit') }}").icon('fa fa-pencil').class('btn-warning'))
 {% endif %}
-		).cell('col-lg-9', bs.tabs()
-			.tab("{{ _('Officials screenshots') }}", bs.carousel().default(base+'/pics/noscreen.png').data({{ json(offshot) }})
-			).tab("{{ _('Community screenshots') }}", bs.carousel().default(base+'/pics/noscreen.png').data({{ json(comshot) }})
-	))).item(bs.h3("{{ _('Apps') }}")
-	).item(repo.widgets.list().items(repo.widgets.items.app).data({{ json(apps) }})
-	).item(bs.tabs()
+);
+d3.select('section.content').call(bs.union()
+	.item(bs.tabs()
 			.tab("{{ _('Description') }}", bs.mdViewer().src({{ json(p.infos) }})
 			).tab("{{ _('Comments') }}", repo.widgets.commentList().postUrl("{{ path_for('packages.comment.add', {'str': p.dbp_str_id}) }}").mayComment({{ json(menu.isAuth) }}).data({{ json(comments) }})
 			).tab("{{ _('Version history') }}", repo.chart.table()
@@ -35,7 +30,10 @@ d3.select('section.content').call(bs.union()
 				.col("{{ _('sha1') }}")
 				.col("{{ _('Download') }}", 'text-right').body({{ json(vers) }})
 			/*).tab('Issues', bs.mdViewer().src('Issues come here')*/
-	)));
+			).tab("{{ _('Officials screenshots') }}", bs.carousel().default(base+'/pics/noscreen.png').data({{ json(offshot) }})
+			).tab("{{ _('Community screenshots') }}", bs.carousel().default(base+'/pics/noscreen.png').data({{ json(comshot) }})
+	)).item(bs.h3("{{ _('Apps') }}")
+	).item(repo.widgets.list().items(repo.widgets.items.app).data({{ json(apps) }})));
 });
 </script>
 {% endblock %}

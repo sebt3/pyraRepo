@@ -200,16 +200,15 @@ create table app_names (
 );
 create index app_names_lang_i on app_names(lang_id);
 
-create table app_ratings (
+create table app_likes (
 	app_id 		int(32) unsigned not null,
 	timestamp	double(20,4) unsigned not null,
 	user_id 	int(32) unsigned not null,
-	stars	 	tinyint(5) unsigned not null,
-	constraint app_ratings_pk primary key (app_id, user_id),
-	constraint app_ratings_app_fk foreign key(app_id) references apps(id) on delete cascade on update cascade,
-	constraint app_ratings_user_fk foreign key(user_id) references users(id) on delete cascade on update cascade
+	constraint app_likes_pk primary key (app_id, user_id),
+	constraint app_likes_app_fk foreign key(app_id) references apps(id) on delete cascade on update cascade,
+	constraint app_likes_user_fk foreign key(user_id) references users(id) on delete cascade on update cascade
 );
-create index app_ratings_user_i on app_ratings(user_id);
+create index app_likes_user_i on app_likes(user_id);
 
 create table app_comments (
 	app_id 		int(32) unsigned not null,

@@ -4,6 +4,13 @@
         {{ _('Apps') }}
         <small>{{ _('list') }}</small>
 {% endblock %}
+{% block leftMenu %}
+                <div class="list-group" id="menu">
+  {% for c in menu.categories %}
+                    <a href="{{ c.url }}" class="list-group-item">{{ c.name }} ({{ c.app_cnt }})</a>
+  {% endfor %}
+                </div>
+{% endblock %}
 {% block scripts %}
 <script>
 repo.api.dispatch.on('ready', function() {

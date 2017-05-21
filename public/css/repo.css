@@ -1,11 +1,13 @@
-#menu {
+section.menu {
   margin-top: 100px;
 }
 
 body {
 	background-color: #DDD;
 }
-
+a.navbar-brand {
+	margin-right: 50px;
+}
 
 /*
  * Page: Login & Register

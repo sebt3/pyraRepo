@@ -121,7 +121,24 @@ order by timestamp desc');
 		$s->bindParam(':path',	$path,		PDO::PARAM_STR);
 		$s->execute();
 	}
-	
+
+	private function getLikes($id) {
+		$ret = [];
+		$u = $this->auth->getUserId();
+		$s = $this->db->prepare('select t.total, u.me from 
+(select count(*) as total from app_likes where app_id=:id) t,
+(select count(*) as me from app_likes where app_id=:id and user_id=:uid) u');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$s->bindParam(':uid',	$u,	PDO::PARAM_INT);
+		$s->execute();
+		if ($r = $s->fetch()) {
+			$r['url'] = $this->router->pathFor('apps.like', array('id'=> $id));
+			return $r;
+		}
+		$ret['total'] = 0;
+		$ret['me'] = 0;
+		return $ret;
+	}
 	private function getScreenShots($id) {
 		$ret = [];
 		$s = $this->db->prepare('select s.path as url, s.timestamp as alt
@@ -221,6 +238,32 @@ order by timestamp desc');
 		$s->bindParam(':comm',	$comm,	PDO::PARAM_STR);
 		$s->execute();
 	}
+	private function toggleLike($id) {
+		$ret	= [];
+		$u = $this->auth->getUserId();
+		$c = $this->db->prepare('select count(*) as cnt from app_likes where user_id=:uid and app_id=:id');
+		$c->bindParam(':id',	$id,	PDO::PARAM_INT);
+		$c->bindParam(':uid',	$u,	PDO::PARAM_INT);
+		$c->execute();
+		$r = $c->fetch();
+		if ($r['cnt']>0) {
+			$s = $this->db->prepare('delete from app_likes where user_id=:uid and app_id=:id');
+			$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+			$s->bindParam(':uid',	$u,	PDO::PARAM_INT);
+			$s->execute();
+			return false;
+		} else {
+			$date	= new DateTime();
+			$ts	= $date->getTimestamp();
+			$s = $this->db->prepare('insert into app_likes(app_id, timestamp, user_id) values(:id, :ts, :uid)');
+			$s->bindParam(':id',	$id,	PDO::PARAM_INT);
+			$s->bindParam(':uid',	$u,	PDO::PARAM_INT);
+			$s->bindParam(':ts',	$ts,	PDO::PARAM_INT);
+			$s->execute();
+			return true;
+		}
+	}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Page Controlers
@@ -266,6 +309,7 @@ order by timestamp desc');
 		);
  		return $this->view->render($response, 'app.twig', [
 			'a'		=> $a,
+			'likes'		=> $this->getLikes($id),
 			'offshot'	=> $this->getScreenShots($id),
 			'comshot'	=> $this->getCommunityScreenShots($id),
 			'vers'		=> $this->getVersionHistory($id),
@@ -283,7 +327,24 @@ order by timestamp desc');
 			return $response->withRedirect($this->router->pathFor('apps.list'));
 		}
 		$this->addComment($id, $request->getParam('comment'));
-		$this->flash->addMessage('info', "Comment added");
+		$this->flash->addMessage('info', $_('Comment added'));
+		return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $id)));
+	}
+
+	public function appLikeGet (Request $request, Response $response) {
+		$_	= $this->trans;
+		$this->auth->assertAuth($request, $response);
+		$id = $request->getAttribute('id');
+		$a  = $this->getApp($id);
+		if (!is_array($a)) {
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('apps.list'));
+		}
+		if ($this->toggleLike($id)) {
+			$this->flash->addMessage('info', $_('Like added'));
+		} else {
+			$this->flash->addMessage('info', $_('Like removed'));
+		}
 		return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $id)));
 	}
 

@@ -4,6 +4,14 @@
         {{ _('Package') }}
         <small>{{ p.name }}</small>
 {% endblock %}
+{% block leftMenu %}
+	<h3>{{ _('Apps') }}</h3>
+                <div class="list-group" id="menu">
+  {% for a in apps.body %}
+                    <a href="{{ path_for('apps.edit', {'id': a.id}) }}" class="list-group-item">{{ a.name }}</a>
+  {% endfor %}
+                </div>
+{% endblock %}
 {% block scripts %}
 <script>
 repo.api.dispatch.on('ready', function() {

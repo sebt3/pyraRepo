@@ -7,6 +7,13 @@
 <a class="btn btn-outline-success" href="{{ path_for('apps.edit', {'id': a.id}) }}" role="button">Edit</a>
 {% endif %}
 {% endblock %}
+{% block leftMenu %}
+                <div class="list-group" id="menu">
+  {% for c in menu.categories %}
+                    <a href="{{ c.url }}" class="list-group-item">{{ c.name }} ({{ c.app_cnt }})</a>
+  {% endfor %}
+                </div>
+{% endblock %}
 {% block scripts %}
 <script>
 repo.api.dispatch.on('ready', function() {
@@ -18,6 +25,7 @@ d3.select('section.content').call(bs.union()
 {% if menu.isMaintainer %}
 			.item(bs.button.a().url("{{ path_for('apps.edit', {'id': a.id}) }}").text("{{ _('Edit') }}").icon('fa fa-pencil').class('btn-warning'))
 {% endif %}
+			.item(repo.widgets.likes().data({{ json(likes) }}))
 		).cell('col-lg-9', bs.tabs()
 			.tab("{{ _('Officials screenshots') }}", bs.carousel().default(base+'/pics/noscreen.png').data({{ json(offshot) }})
 			).tab("{{ _('Community screenshots') }}", bs.carousel().default(base+'/pics/noscreen.png').data({{ json(comshot) }})

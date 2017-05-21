@@ -116,6 +116,7 @@ $app->group('/apps', function () use ($app) {
 	$app->get('/{id:[0-9]+}',		'\AppPage:appByIdPage')->setName('apps.byId');
 	$app->get('/category/{id:[0-9]+}',	'\AppPage:appsByCatPage')->setName('apps.byCat');
 	$app->get('/{id:[0-9]+}/edit',		'\AppPage:appEditPage')->setName('apps.edit');
+	$app->get('/{id:[0-9]+}/like',		'\AppPage:appLikeGet')->setName('apps.like');
 	$app->post('/{id:[0-9]+}/edit/description','\AppPage:descriptionPost')->setName('apps.edit.desc');
 	$app->post('/{id:[0-9]+}/upload',	'\AppPage:screenshotPost')->setName('upload.screenshot');
 	$app->post('/{id:[0-9]+}/comment/add',	'\AppPage:commentPost')->setName('apps.comment.add');
