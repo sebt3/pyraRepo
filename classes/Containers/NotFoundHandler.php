@@ -40,5 +40,3 @@ class NotFoundHandler extends \Slim\Handlers\NotFound {
 	}
 
 }
-
-?>

@@ -57,6 +57,3 @@ class PhpErrorHandler extends \Slim\Handlers\PhpError {
 	}
 
 }
-
-?>
-

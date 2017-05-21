@@ -420,6 +420,3 @@ class AuthContainer extends \core {
  		return $response->withRedirect($this->router->pathFor('home'));
 	}
 }
-
-?>
-

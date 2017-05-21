@@ -48,6 +48,3 @@ class Translate extends \core {
 		return $this->lang;
 	}
 }
-
-
-?>

@@ -46,4 +46,3 @@ class MenuObject extends \core {
 		return $response = $next($request, $response);
 	}
 }
-?>

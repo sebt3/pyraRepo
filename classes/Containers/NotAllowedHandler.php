@@ -50,5 +50,3 @@ class NotAllowedHandler extends NotAllowed {
 	}
 
 }
-
-?>

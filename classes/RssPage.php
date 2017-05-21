@@ -43,7 +43,9 @@ class RssPage extends CorePage {
 		$resp = $this->view->render($response, 'rss.twig', [
 			'list'	=> $this->getFeed($request->getUri())
  		]);
- 		return $resp->withHeader('Content-Type', 'application/rss+xml');
+ 		return $resp->withHeader('Content-Type', 'application/rss+xml')
+			->withHeader('X-Clacks-Overhead', 'DBP repository')
+			->withHeader('X-Clacks-Overhead', 'DBP repository');
 	}
 
 }

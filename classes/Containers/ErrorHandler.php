@@ -59,6 +59,3 @@ class ErrorHandler extends Error {
 	}
 
 }
-
-?>
-

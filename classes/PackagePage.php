@@ -410,9 +410,7 @@ class PackagePage extends CorePage {
 		$stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
 
 		return $response->withBody($stream)
-				->withHeader('Content-Type', 'application/force-download')
 				->withHeader('Content-Type', 'application/octet-stream')
-				->withHeader('Content-Type', 'application/download')
 				->withHeader('Content-Description', 'File Transfer')
 				->withHeader('Content-Transfer-Encoding', 'binary')
 				->withHeader('Content-Disposition', 'attachment; filename="' . $p['dbp_str_id'].'-'.$p['version'].'.dbp' . '"')
@@ -435,9 +433,7 @@ class PackagePage extends CorePage {
 		$stream = new \Slim\Http\Stream($fh); // create a stream instance for the response body
 
 		return $response->withBody($stream)
-				->withHeader('Content-Type', 'application/force-download')
 				->withHeader('Content-Type', 'application/octet-stream')
-				->withHeader('Content-Type', 'application/download')
 				->withHeader('Content-Description', 'File Transfer')
 				->withHeader('Content-Transfer-Encoding', 'binary')
 				->withHeader('Content-Disposition', 'attachment; filename="' . $v['dbp_str_id'].'-'.$v['version'].'.dbp' . '"')
