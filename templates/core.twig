@@ -59,15 +59,17 @@
   {% elseif lang == 'nl-NL' %}
 			    <span class="flag-icon flag-icon-nl flag-icon-squared"></span>
   {% else %}
-			    <span class="flag-icon flag-icon-gb flag-icon-squared"></span>
+			    <span class="flag-icon flag-icon-us flag-icon-squared"></span>
   {% endif %}
 		    <span class="caret"></span></a>
 		    <ul class="dropdown-menu">
-		     <li><a href="{{ path_for('user.lang') }}?lang=en-US&referer={{ menu.url }}"><span class="flag-icon flag-icon-gb flag-icon-squared"></span> {{ _('English') }}</a></li>
 		     <li><a href="{{ path_for('user.lang') }}?lang=fr-FR&referer={{ menu.url }}"><span class="flag-icon flag-icon-fr flag-icon-squared"></span> {{ _('French') }}</a></li>
 		     <li><a href="{{ path_for('user.lang') }}?lang=de-DE&referer={{ menu.url }}"><span class="flag-icon flag-icon-de flag-icon-squared"></span> {{ _('German') }}</a></li>
+		     <li><a href="{{ path_for('user.lang') }}?lang=es-ES&referer={{ menu.url }}"><span class="flag-icon flag-icon-es flag-icon-squared"></span> {{ _('Spanish') }}</a></li>
 		     <li><a href="{{ path_for('user.lang') }}?lang=it-IT&referer={{ menu.url }}"><span class="flag-icon flag-icon-it flag-icon-squared"></span> {{ _('Italian') }}</a></li>
 		     <li><a href="{{ path_for('user.lang') }}?lang=nl-NL&referer={{ menu.url }}"><span class="flag-icon flag-icon-nl flag-icon-squared"></span> {{ _('Dutch') }}</a></li>
+		     <li><a href="{{ path_for('user.lang') }}?lang=en-GB&referer={{ menu.url }}"><span class="flag-icon flag-icon-gb flag-icon-squared"></span> {{ _('British') }}</a></li>
+		     <li><a href="{{ path_for('user.lang') }}?lang=en-US&referer={{ menu.url }}"><span class="flag-icon flag-icon-us flag-icon-squared"></span> {{ _('American') }}</a></li>
 		    </ul>
 		  </li>
 		  <li>

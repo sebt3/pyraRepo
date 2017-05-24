@@ -10,7 +10,7 @@ class Translate extends \core {
 	private $trans;
 	public function __construct(Container $ci) {
 		parent::__construct($ci);
-		$this->langs = array('fr-FR', 'it-IT', 'de-DE', 'en-US', 'nl-NL');
+		$this->langs = array('fr-FR', 'es-ES', 'it-IT', 'de-DE', 'en-GB', 'nl-NL', 'en-US');
 		$a = array_intersect(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']), $this->langs);
 		$this->lang = 'en-US';
 		if (!empty($a))

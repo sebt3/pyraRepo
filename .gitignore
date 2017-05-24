@@ -1,6 +1,7 @@
 public/vendor
 public/icons
 public/pics
+public/langs/*.back
 vendor
 dbps
 logs
