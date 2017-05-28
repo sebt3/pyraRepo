@@ -110,6 +110,7 @@ class AuthContainer extends \core {
 	private function genToken($length = 20) {
 		return bin2hex(random_bytes($length));
 	}
+
 	public function isPackageMaintainer($id) {
 		$u = $this->auth->getUserId();
 		$s = $this->db->prepare('select count(*) as cnt 

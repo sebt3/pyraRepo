@@ -15,6 +15,14 @@
 {% block scripts %}
 <script>
 repo.api.dispatch.on('ready', function() {
+d3.select('section.content').call(bs.modal().class('modal-danger').id("deletePackage").title("{{ _('Delete package') }}").body(bs.union()
+	.item(bs.p("{{ _('Are you sure you want to delete this package:') }}"))
+	.item(bs.p("{{ p.name }}"))
+).footer(bs.union()
+	.item(bs.p("{{ _('Warning: this action cannot be undone') }}"))
+	.item(bs.button.submit().class('btn-danger').url("{{ path_for('packages.edit.delete', {'str': p.dbp_str_id}) }}").text("{{ _('Confirm') }}"))
+));
+
 d3.select('section.content').call(bs.union()
 	.item(bs.form().url("{{ path_for('packages.edit.desc', {'str': p.dbp_str_id}) }}").body(bs.box()
 		.title("{{ _('Description') }}")
@@ -34,11 +42,30 @@ d3.select('section.content').call(bs.union()
 		.add("{{ l.name }}",{{ l.id }})
 {% endfor %}
 		)).item(bs.formGroup('name').label("{{ _('License name') }}").type("text").value("{{ p.lic_detail }}"))
-	))).item(bs.box().title("{{ _('Maintainers') }}").tool(bs.button.a().url("{{ path_for('packages.maintainer.add', {'str': p.dbp_str_id}) }}").icon('fa fa-plus').text("{{ _('Add') }}")).body(repo.chart.table()
-				.col("{{ _('username') }}")
-				.col("{{ _('Remove') }}", 'text-right').body({{ json(maintainers) }})
-	/*)).item(bs.box().title("{{ _('Versions') }}").body(bs.union()*/
-	)).item(bs.box().title("{{ _('Delete package') }}").class('box-solid box-danger').body(bs.union()
+	))).item(bs.box().title("{{ _('Maintainers') }}")
+		.tool(bs.button.a().url("{{ path_for('packages.maintainer.add', {'str': p.dbp_str_id}) }}").icon('fa fa-plus').text("{{ _('Add') }}"))
+		.body(repo.chart.table()
+			.col("{{ _('username') }}")
+			.col("{{ _('Remove') }}", 'text-right').body({{ json(maintainers) }})
+	)).item(bs.box().title("{{ _('Disable') }}").class('box-warning').body(bs.row()
+		.cell('col-md-2', bs.panel().title("{{ _('Package') }}").body(bs.button.submit().url("{{ path_for('packages.edit.disable', {'str': p.dbp_str_id}) }}")
+{% if p.enabled == 1 %}
+			.text("{{ _('Disable') }}")
+			.class('btn-warning')
+{% else %}
+			.text("{{ _('Enable') }}")
+			.class('btn-success')
+{% endif %}
+		)).cell('col-md-5', bs.panel().title("{{ _('Versions') }}").body(repo.chart.table()
+			.col("{{ _('Version') }}")
+			.col("{{ _('Disable') }}", 'text-right').body({{ json(vers) }})
+		)).cell('col-md-5', bs.panel().title("{{ _('Disabled apps') }}").body(repo.chart.table()
+			.col("{{ _('Apps') }}")
+			.col("{{ _('Enable') }}", 'text-right').body({{ json(disa) }})
+		))
+	)).item(bs.box().title("{{ _('Delete package') }}").class('box-solid box-danger').body(bs.button.toggle().target('deletePackage')
+			.text("{{ _('Delete') }}")
+			.class('btn-danger')
 	))
 );
 });

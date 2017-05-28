@@ -15,7 +15,16 @@ d3.select('section.content').call(bs.union()
 		.item(bs.formGroup('again').label("{{ _('Again') }}").type("password"))
 	)))
   {% endif %}
-);
+	.item(bs.row()
+	.cell('col-md-4',bs.box().title("{{ _('Your packages') }}").body(repo.chart.table()
+		.col("{{ _('Name') }}")
+		.col("{{ _('Actions') }}", 'text-right').body({{ json(pck) }})
+	)).cell('col-md-4',bs.box().title("{{ _('Your downloads') }}").body(repo.chart.table()
+		.col("{{ _('Package') }}").body({{ json(dwn) }})
+	)).cell('col-md-4',bs.box().title("{{ _('Your likes') }}").body(repo.chart.table()
+		.col("{{ _('App') }}").body({{ json(lks) }})
+	))
+));
 });
 </script>
 {% endblock %}

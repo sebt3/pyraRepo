@@ -32,14 +32,13 @@ class PackagePage extends CorePage {
 		}
 		return $ret;
 	}
+
 	private function getPackage($id) {
-		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, p.forumurl, p.upurl, p.upsrcurl, p.srcurl, p.licenseurl, p.last_vers, p.lic_id, p.lic_detail, v.md5sum, v.sha1sum, v.filesize
+		$s = $this->db->prepare('select p.id as dbp_id, p.str_id as dbp_str_id, p.name, p.icon, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, p.infos, p.forumurl, p.upurl, p.upsrcurl, p.srcurl, p.licenseurl, p.last_vers, p.lic_id, p.lic_detail, v.md5sum, v.sha1sum, v.filesize, p.enabled&v.enabled as enabled
   from	dbpackages p, package_versions v, archs ar, users u
  where p.last_vers=v.id
    and p.arch_id=ar.id
    and u.id=v.by_user
-   and p.enabled!=0
-   and v.enabled!=0
    and p.id=:id');
 		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
 		$s->execute();
@@ -47,6 +46,7 @@ class PackagePage extends CorePage {
 		$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
 		return $r;
 	}
+
 	private function getPackageVersion($str, $id) {
 		$s = $this->db->prepare('select v.version, v.path, p.str_id as dbp_str_id, v.md5sum, v.sha1sum, v.filesize
   from package_versions v, dbpackages p
@@ -60,6 +60,7 @@ class PackagePage extends CorePage {
 		$s->execute();
 		return $s->fetch();
 	}
+
 	private function getPackageApps($id) {
 		$_ = $this->trans;
 		$ret = [];
@@ -85,6 +86,7 @@ class PackagePage extends CorePage {
 		}
 		return $ret;
 	}
+
 	private function getPackageMaintainers($id, $str) {
 		$_ = $this->trans;
 		$ret = [];
@@ -103,6 +105,47 @@ class PackagePage extends CorePage {
 		}
 		return $ret;
 	}
+
+	private function getVersions($id,$str) {
+		$_ = $this->trans;
+		$ret = [];
+		$s = $this->db->prepare('select v.version, v.id, v.enabled
+  from package_versions v
+ where v.dbp_id=:id
+ order by timestamp desc');
+		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			if ($r['enabled']==1)
+				$r['icon'] = 'fa fa-eye-slash';
+			else
+				$r['icon'] = 'fa fa-eye';
+			$ret[] = array(
+				'version'	=> array( 'text' => $r['version']),
+				'actions'	=> array(array( 'icon' => $r['icon'], 'url' => $this->router->pathFor('packages.version.toggle', array('id'=> $r['id'], 'str' => $str))))
+			);
+		}
+		return $ret;
+	}
+
+	private function getDisabledApps($id,$str) {
+		$_ = $this->trans;
+		$ret = [];
+		$s = $this->db->prepare('select a.id, a.name
+  from apps a
+ where a.dbp_id=:id
+   and a.enabled=0');
+		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = array(
+				'name'		=> array( 'text' => $r['name'], 'url'=> $this->router->pathFor('apps.edit', array('id'=> $r['id']))),
+				'actions'	=> array(array( 'icon' => 'fa fa-eye', 'url' => $this->router->pathFor('apps.edit.enable', array('id'=> $r['id']))))
+			);
+		}
+		return $ret;
+	}
+
 	private function getUsers($id) {
 		$_ = $this->trans;
 		$ret = [];
@@ -118,6 +161,7 @@ class PackagePage extends CorePage {
 		}
 		return $ret;
 	}
+
 	private function getPackageId($str) {
 		$s = $this->db->prepare('select id from	dbpackages where str_id=:str');
 		$s->bindParam(':str',	$str,		PDO::PARAM_STR);
@@ -189,16 +233,72 @@ class PackagePage extends CorePage {
 		}
 		return $ret;
 	}
+
+	private function isEnabledVersion($vid) {
+		$s = $this->db->prepare('select enabled
+  from package_versions
+ where id=:id');
+		$s->bindParam(':id',  $vid, PDO::PARAM_INT);
+		$s->execute();
+		$r = $s->fetch();
+		return $r['enabled']==1;
+	}
+
+	private function isOnlyVersion($vid) {
+		$s = $this->db->prepare('select count(v.id) as cnt
+  from package_versions v, package_versions o
+ where v.dbp_id  = o.dbp_id
+   and v.enabled = 1
+   and o.id=:id');
+		$s->bindParam(':id',  $vid, PDO::PARAM_INT);
+		$s->execute();
+		$r = $s->fetch();
+		return $r['cnt']<=1;
+	}
+
+	private function isCurrentVersion($vid) {
+		$s = $this->db->prepare('select count(*) as cnt from dbpackages p, package_versions v
+ where v.dbp_id=p.id
+   and v.id=p.last_vers
+   and v.id=:id');
+		$s->bindParam(':id',  $vid, PDO::PARAM_INT);
+		$s->execute();
+		$r = $s->fetch();
+		return $r['cnt']>=1;
+	}
+
+	private function toggleVersion($vid) {
+		$s = $this->db->prepare('update package_versions set enabled = !enabled where id=:id');
+		$s->bindParam(':id',	$vid,	PDO::PARAM_INT);
+		$s->execute();
+	}
+
+	private function updateLastVersion($str) {
+		$s = $this->db->prepare('select v.id
+  from package_versions v, (select max(mv.timestamp) as ts
+	  from package_versions mv
+	 where mv.dbp_id in (select id from dbpackages where str_id=:str)
+	   and mv.enabled=1) m
+ where v.dbp_id in (select id from dbpackages where str_id=:str)
+   and v.timestamp=m.ts');
+		$s->bindParam(':str',  $str, PDO::PARAM_STR);
+		$s->execute();
+		$r = $s->fetch();
+		$u = $this->db->prepare('update dbpackages set last_vers = :r where str_id=:str');
+		$u->bindParam(':str', $str, PDO::PARAM_STR);
+		$u->bindParam(':r',   $r['id'], PDO::PARAM_INT);
+		$u->execute();
+	}
+
 	private function updateDesc($id, $desc) {
-		$ret = [];
 		$s = $this->db->prepare('update dbpackages set infos=:desc where id=:id');
 		if ($desc=="") $desc=null;
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->bindParam(':desc',	$desc,	PDO::PARAM_STR);
 		$s->execute();
 	}
+
 	private function updateUrls($id, $f, $u, $us, $sr, $lr) {
-		$ret = [];
 		$s = $this->db->prepare('update dbpackages set forumurl=:f, upurl=:u, upsrcurl=:us, srcurl=:s, licenseurl=:l  where id=:id');
 		if ($f=="") $f=null;
 		if ($u=="") $u=null;
@@ -213,6 +313,7 @@ class PackagePage extends CorePage {
 		$s->bindParam(':l',	$lr,	PDO::PARAM_STR);
 		$s->execute();
 	}
+
 	private function updateLicence($id, $ltype, $name) {
 		$s = $this->db->prepare('update dbpackages set lic_id=:lic, lic_detail=:name where id=:id');
 		if ($ltype=="" || $ltype==0 ) $ltype=null;
@@ -255,7 +356,6 @@ class PackagePage extends CorePage {
 	}
 
 	private function addComment($id, $comm) {
-		$ret	= [];
 		$date	= new DateTime();
 		$ts	= $date->getTimestamp();
 		$u = $this->auth->getUserId();
@@ -269,7 +369,6 @@ class PackagePage extends CorePage {
 	}
 	
 	private function removeMaintainer($id, $uid) {
-		$ret	= [];
 		$s = $this->db->prepare('delete from packages_maintainers where dbp_id=:id and user_id=:uid');
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->bindParam(':uid',	$uid,	PDO::PARAM_INT);
@@ -277,10 +376,21 @@ class PackagePage extends CorePage {
 	}
 
 	private function addMaintainer($id, $uid) {
-		$ret	= [];
 		$s = $this->db->prepare('insert into packages_maintainers(dbp_id,user_id) values(:id, :uid) on duplicate key update user_id=:uid');
 		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->bindParam(':uid',	$uid,	PDO::PARAM_INT);
+		$s->execute();
+	}
+	
+	private function toggleEnablePackage($p) {
+		$s = $this->db->prepare('update dbpackages set enabled = !enabled where id=:id');
+		$s->bindParam(':id',	$p['dbp_id'],	PDO::PARAM_INT);
+		$s->execute();
+	}
+
+	private function deletePackage($id) {
+		$s = $this->db->prepare('delete from dbpackages where id=:id');
+		$s->bindParam(':id',	$id,	PDO::PARAM_INT);
 		$s->execute();
 	}
 
@@ -291,6 +401,7 @@ class PackagePage extends CorePage {
 		$this->menu->breadcrumb = array(
 			array('name' => 'packages', 'icon' => 'fa fa-archive', 'url' => $this->router->pathFor('packages.list'))
 		);
+		$this->menu->disabled = true;
  		return $this->view->render($response, 'packages.twig', [
 			'packages'	 => $this->getPackages()
  		]);
@@ -304,8 +415,13 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
+		if ($p['enabled']!=1&&!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_('Package ').$id.$_(' is disabled by it\'s maintainer'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
 		return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
 	}
+
 	public function packageByStrPage (Request $request, Response $response) {
 		$_ = $this->trans;
 		$str = $request->getAttribute('str');
@@ -317,6 +433,10 @@ class PackagePage extends CorePage {
 		}
 		if ($this->isPackageMaintainer($id))
 			$this->menu->isMaintainer  = true;
+		else if ( $p['enabled'] != 1 ) {
+			$this->flash->addMessage('error', $_('Package ').$id.$_(' is disabled by it\'s maintainer'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
 		$this->menu->breadcrumb = array(
 			array('name' => 'packages', 'icon' => 'fa fa-archive', 'url' => $this->router->pathFor('packages.list')),
 			array('name' => $p['name'], 'url' => $this->router->pathFor('packages.byStr', array('str'=> $str)))
@@ -339,6 +459,10 @@ class PackagePage extends CorePage {
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
 			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if ($p['enabled']!=1&&!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_('Package ').$id.$_(' is disabled by it\'s maintainer'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		$this->addComment($id, $request->getParam('comment'));
@@ -368,9 +492,12 @@ class PackagePage extends CorePage {
 			'p'	=> $p,
 			'apps'	=> $this->getPackageApps($id),
 			'lics'	=> $this->getLicenses(),
+			'vers'	=> $this->getVersions($id,$str),
+			'disa'	=> $this->getDisabledApps($id,$str),
 			'maintainers' => $this->getPackageMaintainers($id, $str)
  		]);
 	}
+
 	public function maintainerAdd (Request $request, Response $response) {
 		$_ = $this->trans;
 		$str = $request->getAttribute('str');
@@ -384,6 +511,7 @@ class PackagePage extends CorePage {
 			$this->flash->addMessage('error', $_('You cannot edit this package'));
 			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $str)));
 		}
+		$this->menu->disabled = true;
 		$this->menu->breadcrumb = array(
 			array('name' => 'packages', 'icon' => 'fa fa-archive', 'url' => $this->router->pathFor('packages.list')),
 			array('name' => $p['name'], 'url' => $this->router->pathFor('packages.byStr', array('str'=> $str))),
@@ -395,6 +523,7 @@ class PackagePage extends CorePage {
 			'users' => $this->getUsers($id)
  		]);
 	}
+
 	public function packageDownload (Request $request, Response $response) {
 		$_ = $this->trans;
 		$str = $request->getAttribute('str');
@@ -402,6 +531,10 @@ class PackagePage extends CorePage {
 		$p  = $this->getPackage($id);
 		if (!is_array($p)) {
 			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if ($p['enabled']!=1&&!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_('Package ').$id.$_(' is disabled by it\'s maintainer'));
 			return $response->withRedirect($this->router->pathFor('packages.list'));
 		}
 		$this->addDownload($p['last_vers']);
@@ -418,6 +551,7 @@ class PackagePage extends CorePage {
 				->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
 				->withHeader('Pragma', 'public');
 	}
+
 	public function packageVersionDownload (Request $request, Response $response) {
 		$_ = $this->trans;
 		$str= $request->getAttribute('str');
@@ -441,6 +575,38 @@ class PackagePage extends CorePage {
 				->withHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
 				->withHeader('Pragma', 'public');
 	}
+
+	public function versionToggle (Request $request, Response $response) {
+		$_ = $this->trans;
+		$str = $request->getAttribute('str');
+		$vid = $request->getAttribute('id');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', $_('No package ').$str.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_('You cannot edit this package'));
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $str)));
+		}
+		if (!$this->isEnabledVersion($vid)) {
+			$this->toggleVersion($vid);
+			$this->updateLastVersion($str);
+			$this->flash->addMessage('info', $_("Version enabled"));
+		} else if ($this->isOnlyVersion($vid)) {
+			$this->flash->addMessage('error', $_("Cannot disable the only available version, disable the package instead"));
+		} else if ($this->isCurrentVersion($vid)) {
+			$this->toggleVersion($vid);
+			$this->updateLastVersion($str);
+			$this->flash->addMessage('info', $_("Version disabled"));
+		} else if ($this->toggleVersion($vid))
+			$this->flash->addMessage('info', $_("Version enabled"));
+		else
+			$this->flash->addMessage('info', $_("Version disabled"));
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}
+
 	public function descriptionPost (Request $request, Response $response) {
 		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
@@ -459,6 +625,7 @@ class PackagePage extends CorePage {
 		$this->flash->addMessage('info', $_("Description updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
+
 	public function urlsPost (Request $request, Response $response) {
 		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
@@ -477,6 +644,7 @@ class PackagePage extends CorePage {
 		$this->flash->addMessage('info', $_("URLs updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
+
 	public function licensePost (Request $request, Response $response) {
 		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
@@ -495,6 +663,7 @@ class PackagePage extends CorePage {
 		$this->flash->addMessage('info', $_("Licence updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
+
 	public function maintainerDeletePost (Request $request, Response $response) {
 		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
@@ -518,6 +687,7 @@ class PackagePage extends CorePage {
 		$this->flash->addMessage('info', $_("Permissions updated"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
 	}
+
 	public function maintainerPost (Request $request, Response $response) {
 		$_ = $this->trans;
 		$this->auth->assertAuth($request, $response);
@@ -536,6 +706,44 @@ class PackagePage extends CorePage {
 		$this->addMaintainer($id, $request->getParam('uid'));
 		$this->flash->addMessage('info', $_("Maintainer added"));
 		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}
+
+	public function disablePost (Request $request, Response $response) {
+		$_ = $this->trans;
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
+		}
+		$this->toggleEnablePackage($p);
+		$this->flash->addMessage('info', $_("Availability updated"));
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $p['dbp_str_id'])));
+	}
+
+	public function deletePost (Request $request, Response $response) {
+		$_ = $this->trans;
+		$this->auth->assertAuth($request, $response);
+		$str = $request->getAttribute('str');
+		$id = $this->getPackageId($str);
+		$p  = $this->getPackage($id);
+		if (!is_array($p)) {
+			$this->flash->addMessage('error', $_('No package ').$id.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('packages.list'));
+		}
+		if(!$this->isPackageMaintainer($id)) {
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
+			return $response->withRedirect($this->router->pathFor('packages.byStr', array('str'=> $p['dbp_str_id'])));
+		}
+		$this->deletePackage($id);
+		$this->flash->addMessage('info', $_("Package deleted succesfully"));
+		return $response->withRedirect($this->router->pathFor('home'));
 	}
 
 }

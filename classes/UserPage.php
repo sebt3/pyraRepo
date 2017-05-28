@@ -12,7 +12,72 @@ class UserPage extends CorePage {
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Model
 	private function setLang($lang) {
+		//TODO...
 		return $lang;
+	}
+
+	private function getMyPackage() {
+		$_ = $this->trans;
+		$u = $this->auth->getUserId();
+		$s = $this->db->prepare('select p.id, p.str_id, p.name
+  from dbpackages p, packages_maintainers m
+ where p.id=m.dbp_id
+   and m.user_id=:user
+ order by str_id asc');
+		$s->bindParam(':user', $u,  PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = array(
+				'pck'	=> array( 'text' => $r['name'], 'url' => $this->router->pathFor('packages.byStr', array('str' => $r['str_id']))),
+				'actions'=> array(array( 'icon' => 'fa fa-pencil', 'url' => $this->router->pathFor('packages.edit', array('str' => $r['str_id']))))
+			);
+		}
+		return $ret;
+	}
+
+	private function getMyDownload() {
+		$_ = $this->trans;
+		$u = $this->auth->getUserId();
+		$s = $this->db->prepare('select p.str_id, p.name, max(d.timestamp) as timestamp
+  from package_downloads d, package_versions v, dbpackages p
+ where d.user_id=:user
+   and d.vers_id=v.id
+   and p.id = v.dbp_id
+   and p.enabled=1
+   and v.enabled=1
+ group by p.str_id, p.name
+ order by timestamp desc');
+		$s->bindParam(':user', $u,  PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = array(
+				'pck'	=> array( 'text' => $r['name'], 'url' => $this->router->pathFor('packages.byStr', array('str' => $r['str_id'])))
+			);
+		}
+		return $ret;
+	}
+
+	private function getMyLike() {
+		$_ = $this->trans;
+		$u = $this->auth->getUserId();
+		$s = $this->db->prepare('select a.id, a.name
+  from app_likes l, apps a, dbpackages p, package_versions v
+ where l.app_id=a.id
+   and a.enabled=1
+   and p.id = a.dbp_id
+   and p.enabled=1
+   and v.id=p.last_vers
+   and v.enabled=1
+   and l.user_id=:user
+ order by l.timestamp desc');
+		$s->bindParam(':user', $u,  PDO::PARAM_INT);
+		$s->execute();
+		while($r = $s->fetch()) {
+			$ret[] = array(
+				'app'	=> array( 'text' => $r['name'], 'url' => $this->router->pathFor('apps.byId', array('id' => $r['id'])))
+			);
+		}
+		return $ret;
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,10 +85,15 @@ class UserPage extends CorePage {
 
 	public function settingsPage (Request $request, Response $response) {
 		$this->auth->assertAuth($request, $response);
+		$this->menu->disabled = true;
 		$this->menu->breadcrumb = array(
 			array('name' => 'user', 'icon' => 'fa fa-user', 'url' => $this->router->pathFor('user.settings'))
 		);
- 		return $this->view->render($response, 'settings.twig', []);
+ 		return $this->view->render($response, 'settings.twig', [
+			'pck'	=> $this->getMyPackage(),
+			'lks'	=> $this->getMyLike(),
+			'dwn'	=> $this->getMyDownload()
+ 		]);
 	}
 
 	public function setLangGet(Request $request, Response $response) {

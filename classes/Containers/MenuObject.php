@@ -11,6 +11,7 @@ class MenuObject extends \core {
 	public $isAuth;
 	public $isMaintainer;
 	public $username;
+	public $disabled;
 	public $categories;
 	public $url;
 

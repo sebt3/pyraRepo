@@ -178,7 +178,9 @@ class UploadPage extends CorePage {
 			if ($current=="")
 				continue; // No current section is bogus so skiping the line
 			$cols = explode('=', $line);
-			if (!preg_match('/\[/', $cols[0]))
+			if (count($cols)<2)
+				$this->logger->addError("parseDesktop: this is too small ".var_export($cols, true));
+			else if (!preg_match('/\[/', $cols[0]))
 				$ret[$current][$cols[0]] = $cols[1];
 			else if (preg_match('/Name\[(.*)\]/', $cols[0], $tmp))
 				$ret[$current]['Names'][$tmp[1]] = $cols[1];
@@ -236,7 +238,7 @@ class UploadPage extends CorePage {
 			$path = __DIR__.'/../dbps/upload/'.$filename;
 			$newfile->moveTo($path);
 			$parsed = $this->parseDBP(realpath($path));
-			$this->logger->addWarning($id." ".var_export($parsed, true));
+			$this->logger->addWarning(var_export($parsed, true));
 			if (isset($parsed['Package Entry'])) {
 				$id = $this->addPackage($parsed['Package Entry'], $filename, $newfile->getSize(), md5_file($path), sha1_file($path));
 				if ($id != 0) {

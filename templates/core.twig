@@ -158,17 +158,22 @@
             </div>
         </div>
     </nav>
-    <div class="container-fluid">
+    <div colass="container-fluid">
+
         <div class="row">
     <!-- Page Menu -->
-            <div class="col-md-2 hidden-sm hidden-xs hidden-print">
+{% if menu.disabled %}
+	    <div class="col-md-12">
+{% else %}
+            <div class="col-md-3 col-lg-2 hidden-sm hidden-xs hidden-print">
 <section class="menu">
 {% block leftMenu %}
 {% endblock %}
 </section>
             </div>
 
-            <div class="col-md-10">
+            <div class="col-md-9 col-lg-10">
+{% endif %}
     <!-- Page Content -->
 {% block contentWrapper %}
     <section class="content-header">

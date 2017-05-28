@@ -93,23 +93,24 @@ order by timestamp desc');
 	}
 
 	private function getApp($id) {
-		$s = $this->db->prepare('select a.id, a.name, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos, v.md5sum, v.sha1sum, v.filesize
+		$s = $this->db->prepare('select a.id, a.name, a.enabled, a.comments, a.icon, p.id as dbp_id, p.str_id as dbp_str_id, p.name as dbp_name, v.version, v.path, ar.name as arch, u.username, v.timestamp * 1000.0 as timestamp, ifnull(a.infos,p.infos) as infos, v.md5sum, v.sha1sum, v.filesize
   from	apps a, dbpackages p, package_versions v, archs ar, users u
  where a.dbp_id=p.id
    and p.last_vers=v.id
    and p.arch_id=ar.id
    and u.id=v.by_user
-   and a.enabled!=0
    and p.enabled!=0
    and v.enabled!=0
    and a.id=:id');
 		$s->bindParam(':id',	$id,		PDO::PARAM_INT);
 		$s->execute();
-		$r=$s->fetch();
-		$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
-		$r['dbp_url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
-		$r['url'] = $this->router->pathFor('apps.byId', array('id'=> $r['id']));
-		return $r;
+		if ($r = $s->fetch()) {
+			$r['icon'] = $GLOBALS['repo_base'].$r['icon'];
+			$r['dbp_url'] = $this->router->pathFor('packages.byStr', array('str'=> $r['dbp_str_id']));
+			$r['url'] = $this->router->pathFor('apps.byId', array('id'=> $r['id']));
+			return $r;
+		}
+		return null;
 	}
 
 	private function addScreenshot($a, $ts, $path) {
@@ -263,6 +264,17 @@ order by timestamp desc');
 			return true;
 		}
 	}
+	private function toggleEnable($a) {
+		if ($a['enabled'] == 1) {
+			$d = $this->db->prepare('update apps set enabled=false where id=:id');
+			$d->bindParam(':id',	$a['id'],PDO::PARAM_INT);
+			$d->execute();
+		} else {
+			$e = $this->db->prepare('update apps set enabled=true where id=:id');
+			$e->bindParam(':id',	$a['id'],PDO::PARAM_INT);
+			$e->execute();
+		}
+	}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,6 +315,10 @@ order by timestamp desc');
 		}
 		if ($this->isPackageMaintainer($a['dbp_id']))
 			$this->menu->isMaintainer  = true;
+		else if ($a['enabled'] == 0) {
+			$this->flash->addMessage('error', $_('App ').$id.$_(' is disabled by it\'s maintainer'));
+			return $response->withRedirect($this->router->pathFor('apps.list'));
+		}
 		$this->menu->breadcrumb = array(
 			array('name' => 'Apps', 'icon' => 'fa fa-rocket', 'url' => $this->router->pathFor('apps.list')),
 			array('name' => $a['name'], 'url' => $this->router->pathFor('apps.byId', array('id'=> $id)))
@@ -364,6 +380,42 @@ order by timestamp desc');
  		return $this->view->render($response, 'appEdit.twig', [
 			'a'	 => $a
  		]);
+	}
+
+	public function enablePost (Request $request, Response $response) {
+		$_	= $this->trans;
+		$this->auth->assertAuth($request, $response);
+		$id = $request->getAttribute('id');
+		$a  = $this->getApp($id);
+		if (!is_array($a)) {
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('apps.list'));
+		}
+		if(!$this->isPackageMaintainer($a['dbp_id'])) {
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
+			return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $id)));
+		}
+		$this->toggleEnable($a);
+		$this->flash->addMessage('info', $_("App status changed"));
+		return $response->withRedirect($this->router->pathFor('apps.edit', array('id'=> $id)));
+	}
+
+	public function enableGet (Request $request, Response $response) {
+		$_	= $this->trans;
+		$this->auth->assertAuth($request, $response);
+		$id = $request->getAttribute('id');
+		$a  = $this->getApp($id);
+		if (!is_array($a)) {
+			$this->flash->addMessage('error', $_('No app ').$id.$_(' found'));
+			return $response->withRedirect($this->router->pathFor('apps.list'));
+		}
+		if(!$this->isPackageMaintainer($a['dbp_id'])) {
+			$this->flash->addMessage('error', $_("You're not a maintainer"));
+			return $response->withRedirect($this->router->pathFor('apps.byId', array('id'=> $id)));
+		}
+		$this->toggleEnable($a);
+		$this->flash->addMessage('info', $_("App enabled"));
+		return $response->withRedirect($this->router->pathFor('packages.edit', array('str'=> $a['dbp_str_id'])));
 	}
 
 	public function descriptionPost (Request $request, Response $response) {

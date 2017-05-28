@@ -100,6 +100,9 @@ $app->group('/packages', function () use ($app) {
 		$app->post('/description',	'\PackagePage:descriptionPost')->setName('packages.edit.desc');
 		$app->post('/urls',		'\PackagePage:urlsPost')->setName('packages.edit.urls');
 		$app->post('/license',		'\PackagePage:licensePost')->setName('packages.edit.license');
+		$app->get('/{id:[0-9]+}/vswitch', '\PackagePage:versionToggle')->setName('packages.version.toggle');
+		$app->post('/disable',		'\PackagePage:disablePost')->setName('packages.edit.disable');
+		$app->post('/delete',		'\PackagePage:deletePost')->setName('packages.edit.delete');
 	})->add(function ($request, $response, $next) {
 		$this->auth->assertAuth($request, $response);
 		return $response = $next($request, $response);
@@ -119,6 +122,8 @@ $app->group('/apps', function () use ($app) {
 	$app->get('/category/{id:[0-9]+}',	'\AppPage:appsByCatPage')->setName('apps.byCat');
 	$app->get('/{id:[0-9]+}/edit',		'\AppPage:appEditPage')->setName('apps.edit');
 	$app->get('/{id:[0-9]+}/like',		'\AppPage:appLikeGet')->setName('apps.like');
+	$app->post('/{id:[0-9]+}/edit/enable',	'\AppPage:enablePost')->setName('apps.edit.enable');
+	$app->get('/{id:[0-9]+}/edit/enable',	'\AppPage:enableGet');
 	$app->post('/{id:[0-9]+}/edit/description','\AppPage:descriptionPost')->setName('apps.edit.desc');
 	$app->post('/{id:[0-9]+}/upload',	'\AppPage:screenshotPost')->setName('upload.screenshot');
 	$app->post('/{id:[0-9]+}/comment/add',	'\AppPage:commentPost')->setName('apps.comment.add');
