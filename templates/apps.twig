@@ -7,7 +7,7 @@
 {% block leftMenu %}
                 <div class="list-group" id="menu">
   {% for c in menu.categories %}
-                    <a href="{{ c.url }}" class="list-group-item">{{ c.name }} ({{ c.app_cnt }})</a>
+                    <a href="{{ c.url }}" class="list-group-item">{{ _(c.name) }} ({{ c.app_cnt }})</a>
   {% endfor %}
                 </div>
 {% endblock %}
