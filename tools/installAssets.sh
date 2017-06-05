@@ -7,7 +7,7 @@ FA="vendor/fortawesome/font-awesome"
 DB="vendor/sebt3/d3-bootstrap"
 FG="vendor/components/flag-icon-css"
 
-CSS="$BS/css/bootstrap.min.css $FA/css/font-awesome.min.css $FG/css/flag-icon.min.css"
+CSS="$BS/css/bootstrap.min.css $BS/css/bootstrap.min.css.map $FA/css/font-awesome.min.css $FG/css/flag-icon.min.css"
 FONTS="$BS/fonts $FA/fonts"
 JS="$DB/vendor/d3.v4.min.js $DB/dist/d3-bootstrap-withextra.min.js"
 
