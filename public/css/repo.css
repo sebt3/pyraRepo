@@ -351,7 +351,7 @@ a.navbar-brand {
 }
 .packageItem .packageItem-head {
 	overflow:hidden;
-	height: 33px;
+	height: 38px;
 }
 .packageItem .packageItem-body tr {
 	overflow:hidden;
@@ -368,6 +368,9 @@ a.navbar-brand {
 	margin-right: 10px;
 }
 .packageItem .packageItem-head .packageItem-icon img {
+	margin-top:    3px;
+	margin-left:   3px;
+	margin-right:  3px;
 	height: 32px;
 	width: 32px;
 }
@@ -388,7 +391,7 @@ a.navbar-brand {
 }
 .appItem .appItem-head {
 	overflow:hidden;
-	height: 33px;
+	height: 38px;
 }
 .appItem .appItem-body tr {
 	overflow:hidden;
@@ -405,6 +408,9 @@ a.navbar-brand {
 	margin-right: 10px;
 }
 .appItem .appItem-head .appItem-icon img {
+	margin-top:    3px;
+	margin-left:   3px;
+	margin-right:  3px;
 	height: 32px;
 	width: 32px;
 }
